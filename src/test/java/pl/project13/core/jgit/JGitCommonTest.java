@@ -15,25 +15,24 @@
  * along with git-commit-id-plugin-core.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package pl.project13.core.cibuild;
+package pl.project13.core.jgit;
 
-import pl.project13.core.log.LoggerBridge;
+import org.junit.Test;
+import pl.project13.core.log.StdOutLoggerBridge;
 
-import javax.annotation.Nonnull;
-import java.util.Map;
-import java.util.Properties;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class UnknownBuildServerData extends BuildServerDataProvider {
-  public UnknownBuildServerData(@Nonnull LoggerBridge log, @Nonnull Map<String, String> env) {
-    super(log, env);
-  }
+public class JGitCommonTest {
 
-  @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
-  }
+  @Test
+  public void trimFullTagName_shouldTrimFullTagNamePrefix() throws Exception {
+    // given
+    String fullName = "refs/tags/v1.0.0";
 
-  @Override
-  public String getBuildBranch() {
-    return "";
+    // when
+    String simpleName = new JGitCommon(new StdOutLoggerBridge(true)).trimFullTagName(fullName);
+
+    // then
+    assertThat(simpleName).isEqualTo("v1.0.0");
   }
 }
