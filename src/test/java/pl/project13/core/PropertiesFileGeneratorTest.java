@@ -21,10 +21,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.sonatype.plexus.build.incremental.BuildContext;
-import org.sonatype.plexus.build.incremental.DefaultBuildContext;
 import pl.project13.core.log.LoggerBridge;
 import pl.project13.core.log.StdOutLoggerBridge;
+import pl.project13.core.util.BuildFileChangeListener;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,13 +38,16 @@ public class PropertiesFileGeneratorTest {
   public final TemporaryFolder temporaryFolder = new TemporaryFolder();
   
   private final LoggerBridge loggerBridge = new StdOutLoggerBridge(false);
-  private final BuildContext buildContext = new DefaultBuildContext();
   
   private PropertiesFileGenerator propertiesFileGenerator;
   
   @Before
   public void setUp() {
-    propertiesFileGenerator = new PropertiesFileGenerator(loggerBridge, buildContext, "properties", "", "test");
+    BuildFileChangeListener buildFileChangeListener = file -> {
+      // Ignore
+    };
+
+    propertiesFileGenerator = new PropertiesFileGenerator(loggerBridge, buildFileChangeListener, "properties", "", "test");
   }
   
   @Test

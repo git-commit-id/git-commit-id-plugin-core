@@ -18,8 +18,8 @@
 package pl.project13.core;
 
 import nu.studer.java.util.OrderedProperties;
-import org.sonatype.plexus.build.incremental.BuildContext;
 import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.util.BuildFileChangeListener;
 import pl.project13.core.util.JsonManager;
 import pl.project13.core.util.PropertyManager;
 
@@ -33,14 +33,14 @@ import java.util.Properties;
 public class PropertiesFileGenerator {
 
   private LoggerBridge log;
-  private BuildContext buildContext;
+  private BuildFileChangeListener buildFileChangeListener;
   private String format;
   private String prefixDot;
   private String projectName;
 
-  public PropertiesFileGenerator(LoggerBridge log, BuildContext buildContext, String format, String prefixDot, String projectName) {
+  public PropertiesFileGenerator(LoggerBridge log, BuildFileChangeListener buildFileChangeListener, String format, String prefixDot, String projectName) {
     this.log = log;
-    this.buildContext = buildContext;
+    this.buildFileChangeListener = buildFileChangeListener;
     this.format = format;
     this.prefixDot = prefixDot;
     this.projectName = projectName;
@@ -97,8 +97,8 @@ public class PropertiesFileGenerator {
           throw new RuntimeException("Cannot create custom git properties file: " + gitPropsFile, ex);
         }
 
-        if (buildContext != null) {
-          buildContext.refresh(gitPropsFile);
+        if (buildFileChangeListener != null) {
+          buildFileChangeListener.changed(gitPropsFile);
         }
 
       } else {
