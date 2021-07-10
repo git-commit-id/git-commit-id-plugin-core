@@ -18,7 +18,7 @@
 package pl.project13.core.cibuild;
 
 import pl.project13.core.GitCommitPropertyConstant;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.Properties;
 
 public class HudsonJenkinsBuildServerData extends BuildServerDataProvider {
 
-  HudsonJenkinsBuildServerData(@Nonnull LoggerBridge log, @Nonnull Map<String, String> env) {
+  HudsonJenkinsBuildServerData(@Nonnull LogInterface log, @Nonnull Map<String, String> env) {
     super(log, env);
   }
 
@@ -51,13 +51,13 @@ public class HudsonJenkinsBuildServerData extends BuildServerDataProvider {
   public String getBuildBranch() {
     String environmentBasedLocalBranch = env.get("GIT_LOCAL_BRANCH");
     if (environmentBasedLocalBranch != null && !environmentBasedLocalBranch.isEmpty()) {
-      log.info("Using environment variable based branch name. GIT_LOCAL_BRANCH = {}",
-          environmentBasedLocalBranch);
+      log.info(String.format("Using environment variable based branch name. GIT_LOCAL_BRANCH = %s",
+          environmentBasedLocalBranch));
       return environmentBasedLocalBranch;
     }
     String environmentBasedBranch = env.get("GIT_BRANCH");
-    log.info("Using environment variable based branch name. GIT_BRANCH = {}",
-        environmentBasedBranch);
+    log.info(String.format("Using environment variable based branch name. GIT_BRANCH = %s",
+        environmentBasedBranch));
     return environmentBasedBranch;
   }
 }

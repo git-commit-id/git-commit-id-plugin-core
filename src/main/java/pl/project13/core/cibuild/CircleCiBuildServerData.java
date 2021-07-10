@@ -18,7 +18,7 @@
 package pl.project13.core.cibuild;
 
 import pl.project13.core.GitCommitPropertyConstant;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.Properties;
 
 public class CircleCiBuildServerData extends BuildServerDataProvider {
 
-  CircleCiBuildServerData(LoggerBridge log, @Nonnull Map<String, String> env) {
+  CircleCiBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
     super(log,env);
   }
 
@@ -48,7 +48,7 @@ public class CircleCiBuildServerData extends BuildServerDataProvider {
   @Override
   public String getBuildBranch() {
     String environmentBasedBranch = env.get("CIRCLE_BRANCH");
-    log.info("Using environment variable based branch name. CIRCLE_BRANCH = {}", environmentBasedBranch);
+    log.info(String.format("Using environment variable based branch name. CIRCLE_BRANCH = %s", environmentBasedBranch));
     return environmentBasedBranch;
   }
 }

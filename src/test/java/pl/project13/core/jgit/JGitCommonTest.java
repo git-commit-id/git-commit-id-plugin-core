@@ -18,9 +18,10 @@
 package pl.project13.core.jgit;
 
 import org.junit.Test;
-import pl.project13.core.log.StdOutLoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class JGitCommonTest {
 
@@ -28,9 +29,10 @@ public class JGitCommonTest {
   public void trimFullTagName_shouldTrimFullTagNamePrefix() throws Exception {
     // given
     String fullName = "refs/tags/v1.0.0";
+    final LogInterface logInterface = mock(LogInterface.class);
 
     // when
-    String simpleName = new JGitCommon(new StdOutLoggerBridge(true)).trimFullTagName(fullName);
+    String simpleName = new JGitCommon(logInterface).trimFullTagName(fullName);
 
     // then
     assertThat(simpleName).isEqualTo("v1.0.0");

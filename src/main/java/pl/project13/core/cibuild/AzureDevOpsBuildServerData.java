@@ -17,7 +17,7 @@
 
 package pl.project13.core.cibuild;
 
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 import pl.project13.core.GitCommitPropertyConstant;
 
 import javax.annotation.Nonnull;
@@ -26,7 +26,7 @@ import java.util.Properties;
 
 public class AzureDevOpsBuildServerData extends BuildServerDataProvider {
 
-  AzureDevOpsBuildServerData(@Nonnull LoggerBridge log, @Nonnull Map<String, String> env) {
+  AzureDevOpsBuildServerData(@Nonnull LogInterface log, @Nonnull Map<String, String> env) {
     super(log, env);
   }
 
@@ -49,7 +49,7 @@ public class AzureDevOpsBuildServerData extends BuildServerDataProvider {
   @Override
   public String getBuildBranch() {
     String environmentBasedBuildSourceBranchName = env.get("BUILD_SOURCEBRANCHNAME");
-    log.info("Using environment variable based branch name. BUILD_SOURCEBRANCHNAME = {}", environmentBasedBuildSourceBranchName);
+    log.info(String.format("Using environment variable based branch name. BUILD_SOURCEBRANCHNAME = %s", environmentBasedBuildSourceBranchName));
     return environmentBasedBuildSourceBranchName;
   }
 }

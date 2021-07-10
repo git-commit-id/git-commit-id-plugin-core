@@ -19,8 +19,8 @@ package pl.project13.core.jgit;
 
 import org.eclipse.jgit.lib.Repository;
 import org.junit.Test;
-import pl.project13.core.log.StdOutLoggerBridge;
 import pl.project13.core.git.GitDescribeConfig;
+import pl.project13.core.log.LogInterface;
 
 import static org.mockito.Mockito.*;
 
@@ -32,8 +32,9 @@ public class DescribeCommandOptionsTest {
     // given
     final Repository repo = mock(Repository.class);
     final int length = 41;
+    final LogInterface logInterface = mock(LogInterface.class);
 
-    DescribeCommand.on(evaluateOnCommit, repo, new StdOutLoggerBridge(true)).abbrev(length);
+    DescribeCommand.on(evaluateOnCommit, repo, logInterface).abbrev(length);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -41,8 +42,9 @@ public class DescribeCommandOptionsTest {
     // given
     final Repository repo = mock(Repository.class);
     final int length = -12;
+    final LogInterface logInterface = mock(LogInterface.class);
 
-    DescribeCommand.on(evaluateOnCommit, repo, new StdOutLoggerBridge(true)).abbrev(length);
+    DescribeCommand.on(evaluateOnCommit, repo, logInterface).abbrev(length);
   }
 
   @Test
@@ -55,7 +57,8 @@ public class DescribeCommandOptionsTest {
     GitDescribeConfig config = new GitDescribeConfig(true, devel, match, abbrev, true, true);
 
     Repository repo = mock(Repository.class);
-    DescribeCommand command = DescribeCommand.on(evaluateOnCommit, repo, new StdOutLoggerBridge(true));
+    final LogInterface logInterface = mock(LogInterface.class);
+    DescribeCommand command = DescribeCommand.on(evaluateOnCommit, repo, logInterface);
     DescribeCommand spiedCommand = spy(command);
 
     // when

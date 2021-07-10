@@ -18,7 +18,7 @@
 package pl.project13.core.cibuild;
 
 import pl.project13.core.GitCommitPropertyConstant;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.Properties;
 
 public class GitlabBuildServerData extends BuildServerDataProvider {
 
-  GitlabBuildServerData(LoggerBridge log, @Nonnull Map<String, String> env) {
+  GitlabBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
     super(log,env);
   }
 
@@ -55,7 +55,7 @@ public class GitlabBuildServerData extends BuildServerDataProvider {
   @Override
   public String getBuildBranch() {
     String environmentBasedBranch = env.get("CI_COMMIT_REF_NAME");
-    log.info("Using environment variable based branch name. CI_COMMIT_REF_NAME = {}", environmentBasedBranch);
+    log.info(String.format("Using environment variable based branch name. CI_COMMIT_REF_NAME = %s", environmentBasedBranch));
     return environmentBasedBranch;
   }
 }

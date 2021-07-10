@@ -20,15 +20,15 @@ package pl.project13.core;
 import java.util.List;
 import java.util.Properties;
 
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nullable;
 
 public class PropertiesFilterer {
 
-  private LoggerBridge log;
+  private LogInterface log;
 
-  public PropertiesFilterer(LoggerBridge log) {
+  public PropertiesFilterer(LogInterface log) {
     this.log = log;
   }
 
@@ -43,7 +43,7 @@ public class PropertiesFilterer {
             .forEach(key -> {
               if (exclusions.stream()
                       .anyMatch(key::matches)) {
-                log.debug("shouldExclude.apply({})", key);
+                log.debug(String.format("shouldExclude.apply(%s)", key));
                 properties.remove(key);
               }
             });
@@ -60,7 +60,7 @@ public class PropertiesFilterer {
             .forEach(key -> {
               if (inclusions.stream()
                       .noneMatch(key::matches)) {
-                log.debug("!shouldInclude.apply({})", key);
+                log.debug(String.format("!shouldInclude.apply(%s)", key));
                 properties.remove(key);
               }
             });

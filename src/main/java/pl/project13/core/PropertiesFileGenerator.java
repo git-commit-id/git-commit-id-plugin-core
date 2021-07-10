@@ -18,7 +18,7 @@
 package pl.project13.core;
 
 import nu.studer.java.util.OrderedProperties;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.BuildFileChangeListener;
 import pl.project13.core.util.JsonManager;
 import pl.project13.core.util.PropertyManager;
@@ -32,13 +32,13 @@ import java.util.Properties;
 
 public class PropertiesFileGenerator {
 
-  private LoggerBridge log;
+  private LogInterface log;
   private BuildFileChangeListener buildFileChangeListener;
   private String format;
   private String prefixDot;
   private String projectName;
 
-  public PropertiesFileGenerator(LoggerBridge log, BuildFileChangeListener buildFileChangeListener, String format, String prefixDot, String projectName) {
+  public PropertiesFileGenerator(LogInterface log, BuildFileChangeListener buildFileChangeListener, String format, String prefixDot, String projectName) {
     this.log = log;
     this.buildFileChangeListener = buildFileChangeListener;
     this.format = format;
@@ -58,10 +58,10 @@ public class PropertiesFileGenerator {
 
         try {
           if (isJsonFormat) {
-            log.info("Reading existing json file [{}] (for module {})...", gitPropsFile.getAbsolutePath(), projectName);
+            log.info(String.format("Reading existing json file [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
             persistedProperties = JsonManager.readJsonProperties(gitPropsFile, sourceCharset);
           } else {
-            log.info("Reading existing properties file [{}] (for module {})...", gitPropsFile.getAbsolutePath(), projectName);
+            log.info(String.format("Reading existing properties file [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
             persistedProperties = PropertyManager.readProperties(gitPropsFile);
           }
 
@@ -75,7 +75,7 @@ public class PropertiesFileGenerator {
           shouldGenerate = !propertiesCopy.equals(persistedProperties);
         } catch (CannotReadFileException ex) {
           // Read has failed, regenerate file
-          log.info("Cannot read properties file [{}] (for module {})...", gitPropsFile.getAbsolutePath(), projectName);
+          log.info(String.format("Cannot read properties file [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
           shouldGenerate = true;
         }
       }
@@ -86,10 +86,10 @@ public class PropertiesFileGenerator {
           OrderedProperties sortedLocalProperties = PropertiesFileGenerator.createOrderedProperties();
           localProperties.forEach((key, value) -> sortedLocalProperties.setProperty((String) key, (String) value));
           if (isJsonFormat) {
-            log.info("Writing json file to [{}] (for module {})...", gitPropsFile.getAbsolutePath(), projectName);
+            log.info(String.format("Writing json file to [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
             JsonManager.dumpJson(outputStream, sortedLocalProperties, sourceCharset);
           } else {
-            log.info("Writing properties file to [{}] (for module {})...", gitPropsFile.getAbsolutePath(), projectName);
+            log.info(String.format("Writing properties file to [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
             // using outputStream directly instead of outputWriter this way the UTF-8 characters appears in unicode escaped form
             PropertyManager.dumpProperties(outputStream, sortedLocalProperties);
           }
@@ -102,7 +102,7 @@ public class PropertiesFileGenerator {
         }
 
       } else {
-        log.info("Properties file [{}] is up-to-date (for module {})...", gitPropsFile.getAbsolutePath(), projectName);
+        log.info(String.format("Properties file [%s] is up-to-date (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
       }
     } catch (IOException e) {
       throw new GitCommitIdExecutionException(e);

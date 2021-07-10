@@ -21,8 +21,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import pl.project13.core.log.LoggerBridge;
-import pl.project13.core.log.StdOutLoggerBridge;
+import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.BuildFileChangeListener;
 
 import java.io.IOException;
@@ -32,22 +31,22 @@ import java.util.Properties;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 public class PropertiesFileGeneratorTest {
   @Rule
   public final TemporaryFolder temporaryFolder = new TemporaryFolder();
-  
-  private final LoggerBridge loggerBridge = new StdOutLoggerBridge(false);
-  
+
   private PropertiesFileGenerator propertiesFileGenerator;
   
   @Before
   public void setUp() {
+    LogInterface logInterface = mock(LogInterface.class);
     BuildFileChangeListener buildFileChangeListener = file -> {
       // Ignore
     };
 
-    propertiesFileGenerator = new PropertiesFileGenerator(loggerBridge, buildFileChangeListener, "properties", "", "test");
+    propertiesFileGenerator = new PropertiesFileGenerator(logInterface, buildFileChangeListener, "properties", "", "test");
   }
   
   @Test

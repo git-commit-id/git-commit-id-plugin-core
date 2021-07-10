@@ -17,7 +17,7 @@
 
 package pl.project13.core.cibuild;
 
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -28,8 +28,8 @@ public class GitHubBuildServerData extends BuildServerDataProvider {
   private static final String BRANCH_REF_PREFIX = "refs/heads/";
   private static final String PULL_REQUEST_REF_PREFIX = "refs/pull/";
 
-  GitHubBuildServerData(LoggerBridge log, @Nonnull Map<String, String> env) {
-    super(log,env);
+  GitHubBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
+    super(log, env);
   }
 
   /**
@@ -52,12 +52,12 @@ public class GitHubBuildServerData extends BuildServerDataProvider {
     if (gitHubRef != null && !gitHubRef.isEmpty()) {
       if (gitHubRef.startsWith(BRANCH_REF_PREFIX)) {
         String branchName = gitHubRef.substring(BRANCH_REF_PREFIX.length());
-        log.info("Using environment variable based branch name. GITHUB_REF = {} (branch = {})", gitHubRef, branchName);
+        log.info(String.format("Using environment variable based branch name. GITHUB_REF = %s (branch = %s)", gitHubRef, branchName));
         return branchName;
       }
       if (gitHubRef.startsWith(PULL_REQUEST_REF_PREFIX)) {
         String branchName = env.get("GITHUB_HEAD_REF");
-        log.info("Using environment variable based branch name. GITHUB_HEAD_REF = {}", branchName);
+        log.info(String.format("Using environment variable based branch name. GITHUB_HEAD_REF = %s", branchName));
         return branchName;
       }
     }

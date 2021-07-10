@@ -18,14 +18,14 @@
 package pl.project13.core.cibuild;
 
 import pl.project13.core.GitCommitPropertyConstant;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
 public class BambooBuildServerData extends BuildServerDataProvider {
 
-  BambooBuildServerData(LoggerBridge log, @Nonnull Map<String, String> env) {
+  BambooBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
     super(log, env);
   }
 
@@ -64,7 +64,7 @@ public class BambooBuildServerData extends BuildServerDataProvider {
         break;
       }
     }
-    log.info("Using environment variable based branch name. {} = {}", environmentBasedKey, environmentBasedBranch);
+    log.info(String.format("Using environment variable based branch name. %s = %s", environmentBasedKey, environmentBasedBranch));
     return environmentBasedBranch;
   }
 }

@@ -20,7 +20,7 @@ package pl.project13.core;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.cibuild.BuildServerDataProvider;
 import pl.project13.core.cibuild.UnknownBuildServerData;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.PropertyManager;
 
 import javax.annotation.Nonnull;
@@ -45,7 +45,7 @@ public abstract class GitDataProvider implements GitProvider {
    * Logging provider which will be used to log events.
    */
   @Nonnull
-  protected final LoggerBridge log;
+  protected final LogInterface log;
 
   /**
    * The {@code prefix} used for all generated properties.
@@ -120,7 +120,7 @@ public abstract class GitDataProvider implements GitProvider {
    * Constructor to encapsulates all references required to dertermine all git-data.
    * @param log logging provider which will be used to log events
    */
-  public GitDataProvider(@Nonnull LoggerBridge log) {
+  public GitDataProvider(@Nonnull LogInterface log) {
     this.log = log;
   }
 
@@ -364,7 +364,7 @@ public abstract class GitDataProvider implements GitProvider {
    * @throws GitCommitIdExecutionException the branch name could not be determined
    */
   protected String determineBranchName(@Nonnull Map<String, String> env) throws GitCommitIdExecutionException {
-    BuildServerDataProvider buildServerDataProvider = BuildServerDataProvider.getBuildServerProvider(env,log);
+    BuildServerDataProvider buildServerDataProvider = BuildServerDataProvider.getBuildServerProvider(env, log);
     if (useBranchNameFromBuildEnvironment && !(buildServerDataProvider instanceof UnknownBuildServerData)) {
       String branchName = buildServerDataProvider.getBuildBranch();
       if (branchName == null || branchName.isEmpty()) {
@@ -390,10 +390,10 @@ public abstract class GitDataProvider implements GitProvider {
     String keyWithPrefix = prefixDot + key;
     if (properties.stringPropertyNames().contains(keyWithPrefix)) {
       String propertyValue = properties.getProperty(keyWithPrefix);
-      log.info("Using cached {} with value {}", keyWithPrefix, propertyValue);
+      log.info(String.format("Using cached %s with value %s", keyWithPrefix, propertyValue));
     } else if (PropertiesFilterer.isIncluded(keyWithPrefix, includeOnlyProperties, excludeProperties)) {
       String propertyValue = value.get();
-      log.info("Collected {} with value {}", keyWithPrefix, propertyValue);
+      log.info(String.format("Collected %s with value %s", keyWithPrefix, propertyValue));
       PropertyManager.putWithoutPrefix(properties, keyWithPrefix, propertyValue);
     }
   }
