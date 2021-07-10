@@ -25,7 +25,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import pl.project13.core.git.GitDescribeConfig;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.Pair;
 
 import javax.annotation.Nonnull;
@@ -37,7 +37,7 @@ import java.util.*;
  */
 public class DescribeCommand extends GitCommand<DescribeResult> {
 
-  private LoggerBridge log;
+  private LogInterface log;
   private JGitCommon jGitCommon;
   private String evaluateOnCommit;
 
@@ -82,7 +82,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @return itself with the options set as specified by the arguments to allow fluent configuration
    */
   @Nonnull
-  public static DescribeCommand on(String evaluateOnCommit, Repository repo, LoggerBridge log) {
+  public static DescribeCommand on(String evaluateOnCommit, Repository repo, LogInterface log) {
     return new DescribeCommand(evaluateOnCommit, repo, log);
   }
 
@@ -94,7 +94,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param log logger bridge to direct logs to
    * @return itself with the options set as specified by the arguments to allow fluent configuration
    */
-  private DescribeCommand(@Nonnull String evaluateOnCommit, @Nonnull Repository repo, @Nonnull LoggerBridge log) {
+  private DescribeCommand(@Nonnull String evaluateOnCommit, @Nonnull Repository repo, @Nonnull LogInterface log) {
     super(repo);
     this.evaluateOnCommit = evaluateOnCommit;
     this.jGitCommon = new JGitCommon(log);
@@ -114,7 +114,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   @Nonnull
   public DescribeCommand always(boolean always) {
     this.alwaysFlag = always;
-    log.info("--always = {}", always);
+    log.info(String.format("--always = %s", always));
     return this;
   }
 
@@ -136,7 +136,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   public DescribeCommand forceLongFormat(@Nullable Boolean forceLongFormat) {
     if (forceLongFormat != null && forceLongFormat) {
       this.forceLongFormat = true;
-      log.info("--long = {}", true);
+      log.info(String.format("--long = %s", true));
     }
     return this;
   }
@@ -161,7 +161,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
       if (n < 0) {
         throw new IllegalArgumentException("N (commit abbrev length) must be positive! (Was [" + n + "])");
       }
-      log.info("--abbrev = {}", n);
+      log.info(String.format("--abbrev = %s", n));
       abbrev = n;
     }
     return this;
@@ -202,7 +202,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   public DescribeCommand tags(@Nullable Boolean includeLightweightTagsInSearch) {
     if (includeLightweightTagsInSearch != null && includeLightweightTagsInSearch) {
       tagsFlag = includeLightweightTagsInSearch;
-      log.info("--tags = {}", includeLightweightTagsInSearch);
+      log.info(String.format("--tags = %s", includeLightweightTagsInSearch));
     }
     return this;
   }
@@ -246,7 +246,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   @Nonnull
   public DescribeCommand dirty(@Nullable String dirtyMarker) {
     Optional<String> option = Optional.ofNullable(dirtyMarker);
-    log.info("--dirty = {}", option.orElse(""));
+    log.info(String.format("--dirty = %s", option.orElse("")));
     this.dirtyOption = option;
     return this;
   }
@@ -262,7 +262,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   public DescribeCommand match(@Nullable String pattern) {
     if (!"*".equals(pattern)) {
       matchOption = Optional.ofNullable(pattern);
-      log.info("--match = {}", matchOption.orElse(""));
+      log.info(String.format("--match = %s", matchOption.orElse("")));
     }
     return this;
   }
@@ -285,7 +285,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
 
     if (hasTags(evalCommit, tagObjectIdToName) && !forceLongFormat) {
       String tagName = tagObjectIdToName.get(evalCommit).iterator().next();
-      log.info("The commit we're on is a Tag ([{}]) and forceLongFormat == false, returning.", tagName);
+      log.info(String.format("The commit we're on is a Tag ([%s]) and forceLongFormat == false, returning.", tagName));
 
       return new DescribeResult(tagName, dirty, dirtyOption);
     }

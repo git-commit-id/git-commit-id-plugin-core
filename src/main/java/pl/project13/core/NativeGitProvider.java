@@ -20,7 +20,7 @@ package pl.project13.core;
 import static java.lang.String.format;
 
 import pl.project13.core.git.GitDescribeConfig;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
 
@@ -45,11 +45,11 @@ public class NativeGitProvider extends GitDataProvider {
   final File canonical;
 
   @Nonnull
-  public static NativeGitProvider on(@Nonnull File dotGitDirectory, long nativeGitTimeoutInMs, @Nonnull LoggerBridge log) {
+  public static NativeGitProvider on(@Nonnull File dotGitDirectory, long nativeGitTimeoutInMs, @Nonnull LogInterface log) {
     return new NativeGitProvider(dotGitDirectory, nativeGitTimeoutInMs, log);
   }
 
-  NativeGitProvider(@Nonnull File dotGitDirectory, long nativeGitTimeoutInMs, @Nonnull LoggerBridge log) {
+  NativeGitProvider(@Nonnull File dotGitDirectory, long nativeGitTimeoutInMs, @Nonnull LogInterface log) {
     super(log);
     this.dotGitDirectory = dotGitDirectory;
     this.nativeGitTimeoutInMs = nativeGitTimeoutInMs;

@@ -18,7 +18,7 @@
 package pl.project13.core;
 
 import org.junit.Test;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import java.util.Properties;
 
@@ -53,7 +53,7 @@ public class GitDataProviderTest  {
 
   private abstract static class TestGitDataProvider extends GitDataProvider {
     TestGitDataProvider() {
-      super(mock(LoggerBridge.class));
+      super(mock(LogInterface.class));
       setPrefixDot("");
     }
   }

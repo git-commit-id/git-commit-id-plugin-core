@@ -29,7 +29,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import pl.project13.core.jgit.DescribeResult;
 import pl.project13.core.jgit.JGitCommon;
 import pl.project13.core.jgit.DescribeCommand;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,11 +51,11 @@ public class JGitProvider extends GitDataProvider {
   private JGitCommon jGitCommon;
 
   @Nonnull
-  public static JGitProvider on(@Nonnull File dotGitDirectory, @Nonnull LoggerBridge log) {
+  public static JGitProvider on(@Nonnull File dotGitDirectory, @Nonnull LogInterface log) {
     return new JGitProvider(dotGitDirectory, log);
   }
 
-  JGitProvider(@Nonnull File dotGitDirectory, @Nonnull LoggerBridge log) {
+  JGitProvider(@Nonnull File dotGitDirectory, @Nonnull LogInterface log) {
     super(log);
     this.dotGitDirectory = dotGitDirectory;
     this.jGitCommon = new JGitCommon(log);
@@ -243,7 +243,7 @@ public class JGitProvider extends GitDataProvider {
       Collection<String> tags = jGitCommon.getTags(repo, headId);
       return String.join(",", tags);
     } catch (GitAPIException e) {
-      log.error("Unable to extract tags from commit: {} ({})", evalCommit.getName(), e.getClass().getName());
+      log.error(String.format("Unable to extract tags from commit: %s", evalCommit.getName()), e);
       return "";
     }
   }

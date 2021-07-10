@@ -231,6 +231,7 @@
             <version>1.1.1</version>
             <scope>test</scope>
         </dependency>
+        <!-- slf4j is a dependency of jgit, this suppresses slf4j's warning during testing when we mock jgit stuff -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>

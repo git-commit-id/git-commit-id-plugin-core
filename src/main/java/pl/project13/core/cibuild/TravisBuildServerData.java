@@ -18,7 +18,7 @@
 package pl.project13.core.cibuild;
 
 import pl.project13.core.GitCommitPropertyConstant;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.Properties;
 
 public class TravisBuildServerData extends BuildServerDataProvider {
 
-  TravisBuildServerData(LoggerBridge log, @Nonnull Map<String, String> env) {
+  TravisBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
     super(log, env);
   }
 
@@ -51,7 +51,7 @@ public class TravisBuildServerData extends BuildServerDataProvider {
   @Override
   public String getBuildBranch() {
     String environmentBasedBranch = env.get("TRAVIS_BRANCH");
-    log.info("Using environment variable based branch name. TRAVIS_BRANCH = {}", environmentBasedBranch);
+    log.info(String.format("Using environment variable based branch name. TRAVIS_BRANCH = %s", environmentBasedBranch));
     return environmentBasedBranch;
   }
 }

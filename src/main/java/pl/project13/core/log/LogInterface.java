@@ -15,25 +15,14 @@
  * along with git-commit-id-plugin-core.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package pl.project13.core.cibuild;
+package pl.project13.core.log;
 
-import pl.project13.core.log.LogInterface;
+public interface LogInterface {
+  void debug(String msg);
 
-import javax.annotation.Nonnull;
-import java.util.Map;
-import java.util.Properties;
+  void info(String msg);
 
-public class UnknownBuildServerData extends BuildServerDataProvider {
-  public UnknownBuildServerData(@Nonnull LogInterface log, @Nonnull Map<String, String> env) {
-    super(log, env);
-  }
+  void warn(String msg);
 
-  @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
-  }
-
-  @Override
-  public String getBuildBranch() {
-    return "";
-  }
+  void error(String msg, Throwable t);
 }

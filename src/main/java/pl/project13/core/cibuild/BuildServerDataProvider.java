@@ -19,7 +19,7 @@ package pl.project13.core.cibuild;
 
 import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.PropertiesFilterer;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.PropertyManager;
 
 import javax.annotation.Nonnull;
@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public abstract class BuildServerDataProvider {
-  final LoggerBridge log;
+  final LogInterface log;
   final Map<String, String> env;
   private String dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ";
   private String dateFormatTimeZone = null;
@@ -40,7 +40,7 @@ public abstract class BuildServerDataProvider {
   private List<String> includeOnlyProperties = null;
   private Map<String, Supplier<String>> additionalProperties = new HashMap<>();
 
-  BuildServerDataProvider(@Nonnull LoggerBridge log, @Nonnull Map<String, String> env) {
+  BuildServerDataProvider(@Nonnull LogInterface log, @Nonnull Map<String, String> env) {
     this.log = log;
     this.env = env;
   }
@@ -82,7 +82,7 @@ public abstract class BuildServerDataProvider {
    * @param log logging provider which will be used to log events
    * @return the corresponding {@link BuildServerDataProvider} for your environment or {@link UnknownBuildServerData}
    */
-  public static BuildServerDataProvider getBuildServerProvider(@Nonnull Map<String, String> env, @Nonnull LoggerBridge log) {
+  public static BuildServerDataProvider getBuildServerProvider(@Nonnull Map<String, String> env, @Nonnull LogInterface log) {
     if (BambooBuildServerData.isActiveServer(env)) {
       return new BambooBuildServerData(log, env);
     }
@@ -161,9 +161,9 @@ public abstract class BuildServerDataProvider {
         // this call might be costly - try to avoid it too (similar concept as in GitDataProvider)
         buildHost = InetAddress.getLocalHost().getHostName();
       } catch (UnknownHostException e) {
-        log.info("Unable to get build host, skipping property {}. Error message: {}",
+        log.info(String.format("Unable to get build host, skipping property %s. Error message: %s",
             GitCommitPropertyConstant.BUILD_HOST,
-            e.getMessage());
+            e.getMessage()));
       }
       return buildHost;
     };
@@ -174,10 +174,10 @@ public abstract class BuildServerDataProvider {
     String keyWithPrefix = prefixDot + key;
     if (properties.stringPropertyNames().contains(keyWithPrefix)) {
       String propertyValue = properties.getProperty(keyWithPrefix);
-      log.info("Using cached {} with value {}", keyWithPrefix, propertyValue);
+      log.info(String.format("Using cached %s with value %s", keyWithPrefix, propertyValue));
     } else if (PropertiesFilterer.isIncluded(keyWithPrefix, includeOnlyProperties, excludeProperties)) {
       String propertyValue = supplier.get();
-      log.info("Collected {} with value {}", keyWithPrefix, propertyValue);
+      log.info(String.format("Collected %s with value %s", keyWithPrefix, propertyValue));
       PropertyManager.putWithoutPrefix(properties, keyWithPrefix, propertyValue);
     }
   }

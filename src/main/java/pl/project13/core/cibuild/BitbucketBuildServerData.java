@@ -18,7 +18,7 @@
 package pl.project13.core.cibuild;
 
 import pl.project13.core.GitCommitPropertyConstant;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import java.util.Map;
 import java.util.Optional;
@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 
 public class BitbucketBuildServerData extends BuildServerDataProvider {
 
-  BitbucketBuildServerData(LoggerBridge log, @Nonnull Map<String, String> env) {
+  BitbucketBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
     super(log, env);
   }
 
@@ -56,7 +56,7 @@ public class BitbucketBuildServerData extends BuildServerDataProvider {
     if (environmentBasedBranch != null) {
       environmentBasedKey = envKey;
     }
-    log.info("Using environment variable based branch name. {} = {}", environmentBasedKey, environmentBasedBranch);
+    log.info(String.format("Using environment variable based branch name. %s = %s", environmentBasedKey, environmentBasedBranch));
     return environmentBasedBranch;
   }
 }

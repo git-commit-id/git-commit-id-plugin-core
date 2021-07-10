@@ -36,16 +36,16 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import pl.project13.core.jgit.dummy.DatedRevTag;
 
 import pl.project13.core.git.GitDescribeConfig;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.Pair;
 
 import javax.annotation.Nonnull;
 
 public class JGitCommon {
 
-  private final LoggerBridge log;
+  private final LogInterface log;
 
-  public JGitCommon(LoggerBridge log) {
+  public JGitCommon(LogInterface log) {
     this.log = log;
   }
 
@@ -70,7 +70,7 @@ public class JGitCommon {
                   return true;
                 }
               } catch (Exception ignored) {
-                log.debug("Failed while getTags [{}] -- ", tagRef, ignored);
+                log.debug(String.format("Failed while getTags [%s] -- ", tagRef));
               }
               return false;
             })
@@ -124,7 +124,7 @@ public class JGitCommon {
   protected Map<ObjectId, List<String>> findTagObjectIds(@Nonnull Repository repo, boolean includeLightweightTags, String matchPattern) {
     Map<ObjectId, List<DatedRevTag>> commitIdsToTags = getCommitIdsToTags(repo, includeLightweightTags, matchPattern);
     Map<ObjectId, List<String>> commitIdsToTagNames = transformRevTagsMapToDateSortedTagNames(commitIdsToTags);
-    log.info("Created map: [{}]", commitIdsToTagNames);
+    log.info(String.format("Created map: [%s]", commitIdsToTagNames));
 
     return commitIdsToTagNames;
   }
@@ -137,7 +137,7 @@ public class JGitCommon {
         RevCommit evalCommit = walk.parseCommit(evalCommitId);
         walk.dispose();
 
-        log.info("evalCommit is [{}]", evalCommit.getName());
+        log.info(String.format("evalCommit is [%s]", evalCommit.getName()));
         return evalCommit;
       }
     } catch (IOException ex) {
@@ -153,13 +153,13 @@ public class JGitCommon {
 
       List<Ref> tagRefs = Git.wrap(repo).tagList().call();
       Pattern regex = Pattern.compile(matchPattern);
-      log.info("Tag refs [{}]", tagRefs);
+      log.info(String.format("Tag refs [%s]", tagRefs));
 
       for (Ref tagRef : tagRefs) {
         walk.reset();
         String name = tagRef.getName();
         if (!regex.matcher(name).matches()) {
-          log.info("Skipping tagRef with name [{}] as it doesn't match [{}]", name, matchPattern);
+          log.info(String.format("Skipping tagRef with name [%s] as it doesn't match [%s]", name, matchPattern));
           continue;
         }
         ObjectId resolvedCommitId = repo.resolve(name);
@@ -168,7 +168,7 @@ public class JGitCommon {
         try {
           final RevTag revTag = walk.parseTag(resolvedCommitId);
           ObjectId taggedCommitId = revTag.getObject().getId();
-          log.info("Resolved tag [{}] [{}], points at [{}] ", revTag.getTagName(), revTag.getTaggerIdent(), taggedCommitId);
+          log.info(String.format("Resolved tag [%s] [%s], points at [%s] ", revTag.getTagName(), revTag.getTaggerIdent(), taggedCommitId));
 
           // sometimes a tag, may point to another tag, so we need to unpack it
           while (isTagId(taggedCommitId)) {
@@ -185,7 +185,7 @@ public class JGitCommon {
           // it's an lightweight tag! (yeah, really)
           if (includeLightweightTags) {
             // --tags means "include lightweight tags"
-            log.info("Including lightweight tag [{}]", name);
+            log.info(String.format("Including lightweight tag [%s]", name));
 
             DatedRevTag datedRevTag = new DatedRevTag(resolvedCommitId, name);
 
@@ -196,16 +196,16 @@ public class JGitCommon {
             }
           }
         } catch (Exception ignored) {
-          log.info("Failed while parsing [{}] -- ", tagRef, ignored);
+          log.info(String.format("Failed while parsing [%s] -- ", tagRef));
         }
       }
 
       for (Map.Entry<ObjectId, List<DatedRevTag>> entry : commitIdsToTags.entrySet()) {
-        log.info("key [{}], tags => [{}] ", entry.getKey(), entry.getValue());
+        log.info(String.format("key [%s], tags => [%s] ", entry.getKey(), entry.getValue()));
       }
       return commitIdsToTags;
     } catch (Exception e) {
-      log.info("Unable to locate tags", e);
+      log.error("Unable to locate tags", e);
     }
     return Collections.emptyMap();
   }

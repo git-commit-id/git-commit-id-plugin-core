@@ -18,7 +18,7 @@
 package pl.project13.core.cibuild;
 
 import pl.project13.core.GitCommitPropertyConstant;
-import pl.project13.core.log.LoggerBridge;
+import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.Properties;
 
 public class AwsCodeBuildBuildServerData extends BuildServerDataProvider {
 
-  AwsCodeBuildBuildServerData(LoggerBridge log, @Nonnull Map<String, String> env) {
+  AwsCodeBuildBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
     super(log,env);
   }
 
@@ -51,7 +51,7 @@ public class AwsCodeBuildBuildServerData extends BuildServerDataProvider {
   @Override
   public String getBuildBranch() {
     String environmentBasedBranch = env.getOrDefault("CODEBUILD_SOURCE_VERSION", "");
-    log.info("Using environment variable based branch name. CODEBUILD_SOURCE_VERSION = {}", environmentBasedBranch);
+    log.info(String.format("Using environment variable based branch name. CODEBUILD_SOURCE_VERSION = %s", environmentBasedBranch));
     return environmentBasedBranch;
   }
 }
