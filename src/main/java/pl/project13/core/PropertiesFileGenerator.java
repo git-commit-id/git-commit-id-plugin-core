@@ -46,7 +46,7 @@ public class PropertiesFileGenerator {
     this.projectName = projectName;
   }
 
-  public void maybeGeneratePropertiesFile(@Nonnull Properties localProperties, File base, String propertiesFilename, Charset sourceCharset) throws GitCommitIdExecutionException {
+  public void maybeGeneratePropertiesFile(@Nonnull Properties localProperties, File base, String propertiesFilename, Charset sourceCharset, boolean escapeUnicode) throws GitCommitIdExecutionException {
     try {
       final File gitPropsFile = craftPropertiesOutputFile(base, propertiesFilename);
       final boolean isJsonFormat = "json".equalsIgnoreCase(format);
@@ -91,7 +91,7 @@ public class PropertiesFileGenerator {
           } else {
             log.info(String.format("Writing properties file to [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
             // using outputStream directly instead of outputWriter this way the UTF-8 characters appears in unicode escaped form
-            PropertyManager.dumpProperties(outputStream, sortedLocalProperties);
+            PropertyManager.dumpProperties(outputStream, sortedLocalProperties, escapeUnicode);
           }
         } catch (final IOException ex) {
           throw new RuntimeException("Cannot create custom git properties file: " + gitPropsFile, ex);
