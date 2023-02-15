@@ -24,5 +24,7 @@ public interface LogInterface {
 
   void warn(String msg);
 
+  void error(String msg);
+
   void error(String msg, Throwable t);
 }
