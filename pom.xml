@@ -33,7 +33,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.target>11</java.target>
 
-        <jgit.version>5.13.1.202206130422-r</jgit.version>
+        <jgit.version>6.4.0.202211300538-r</jgit.version>
         <junit.version>4.13.2</junit.version>
         <mockito.version>5.1.1</mockito.version>
         <assertj.version>3.24.2</assertj.version>
@@ -235,7 +235,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
+            <version>1.7.30</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
