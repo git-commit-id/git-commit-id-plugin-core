@@ -121,10 +121,10 @@ public class NativeGitProvider extends GitDataProvider {
         if (noSymbolicRef || noSuchRef) {
           branch = getCommitId();
         } else {
-          throw new RuntimeException(e);
+          throw new GitCommitIdExecutionException(e);
         }
       } else {
-        throw new RuntimeException(e);
+        throw new GitCommitIdExecutionException(e);
       }
     }
     return branch;
@@ -343,7 +343,7 @@ public class NativeGitProvider extends GitDataProvider {
       String command = String.format("%s %s", exec, gitCommand);
 
       return getRunner().runEmpty(directory, nativeGitTimeoutInMs, command);
-    } catch (IOException ex) {
+    } catch (IOException | GitCommitIdExecutionException ex) {
       log.error("Failed to run git command", ex);
       // Error means "non-empty"
       return false;
@@ -351,7 +351,7 @@ public class NativeGitProvider extends GitDataProvider {
     }
   }
 
-  private String runQuietGitCommand(File directory, long nativeGitTimeoutInMs, String gitCommand) {
+  private String runQuietGitCommand(File directory, long nativeGitTimeoutInMs, String gitCommand) throws GitCommitIdExecutionException {
     final String env = System.getenv("GIT_PATH");
     final String exec = env == null ? "git" : env;
     final String command = String.format("%s %s", exec, gitCommand);
@@ -359,11 +359,11 @@ public class NativeGitProvider extends GitDataProvider {
     try {
       return getRunner().run(directory, nativeGitTimeoutInMs, command.trim()).trim();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new GitCommitIdExecutionException(e);
     }
   }
 
-  private String runGitCommand(File directory, long nativeGitTimeoutInMs, String gitCommand) throws NativeCommandException {
+  private String runGitCommand(File directory, long nativeGitTimeoutInMs, String gitCommand) throws GitCommitIdExecutionException {
     final String env = System.getenv("GIT_PATH");
     String exec = env == null ? "git" : env;
     final String command = String.format("%s %s", exec, gitCommand);
@@ -373,7 +373,7 @@ public class NativeGitProvider extends GitDataProvider {
     } catch (NativeCommandException e) {
       throw e;
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new GitCommitIdExecutionException(e);
     }
   }
 
@@ -393,7 +393,7 @@ public class NativeGitProvider extends GitDataProvider {
      * @return the output obtained from stdout by running the command
      * @throws IOException the command execution failed
      */
-    String run(File directory, long nativeGitTimeoutInMs, String command) throws IOException;
+    String run(File directory, long nativeGitTimeoutInMs, String command) throws IOException, GitCommitIdExecutionException;
 
     /** Run a command and return false if it contains at least one output line
      *
@@ -403,10 +403,10 @@ public class NativeGitProvider extends GitDataProvider {
      * @return false if the output of the command contains at least one line on stdout, true otherwise
      * @throws IOException the command execution failed
      */
-    boolean runEmpty(File directory, long nativeGitTimeoutInMs, String command) throws IOException;
+    boolean runEmpty(File directory, long nativeGitTimeoutInMs, String command) throws IOException, GitCommitIdExecutionException;
   }
 
-  public static class NativeCommandException extends IOException {
+  public static class NativeCommandException extends GitCommitIdExecutionException {
     private static final long serialVersionUID = 3511033422542257748L;
     private final int exitCode;
     private final String command;
@@ -455,7 +455,7 @@ public class NativeGitProvider extends GitDataProvider {
 
   protected static class JavaProcessRunner implements ProcessRunner {
     @Override
-    public String run(File directory, long nativeGitTimeoutInMs, String command) throws IOException {
+    public String run(File directory, long nativeGitTimeoutInMs, String command) throws IOException, GitCommitIdExecutionException {
       String output = "";
       try {
         final StringBuilder commandResult = new StringBuilder();
@@ -477,7 +477,7 @@ public class NativeGitProvider extends GitDataProvider {
     }
 
     @Override
-    public boolean runEmpty(File directory, long nativeGitTimeoutInMs, String command) throws IOException {
+    public boolean runEmpty(File directory, long nativeGitTimeoutInMs, String command) throws IOException, GitCommitIdExecutionException {
       final AtomicBoolean empty = new AtomicBoolean(true);
 
       try {
@@ -499,7 +499,7 @@ public class NativeGitProvider extends GitDataProvider {
             File directory,
             long nativeGitTimeoutInMs,
             String command,
-            final Function<String, Boolean> stdoutConsumer) throws InterruptedException, IOException {
+            final Function<String, Boolean> stdoutConsumer) throws InterruptedException, IOException, GitCommitIdExecutionException {
 
       final ProcessBuilder builder = new ProcessBuilder(command.split("\\s"));
       final Process proc = builder.directory(directory).start();
