@@ -124,13 +124,13 @@ public class GitCommitIdPluginIntegrationTest {
     // then
 
     // explicitly excluded
-    assertThat( ! properties.contains("git.remote.origin.url"));
+    assertThat(! properties.contains("git.remote.origin.url"));
 
     // glob excluded
-    assertThat( ! properties.contains("git.build.user.name"));
-    assertThat( ! properties.contains("git.build.user.email"));
-    assertThat( ! properties.contains("git.commit.user.name"));
-    assertThat( ! properties.contains("git.commit.user.email"));
+    assertThat(! properties.contains("git.build.user.name"));
+    assertThat(! properties.contains("git.build.user.email"));
+    assertThat(! properties.contains("git.commit.user.name"));
+    assertThat(! properties.contains("git.commit.user.email"));
 
     // these stay
     assertThat(properties.contains("git.branch"));
@@ -169,11 +169,11 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties.contains("git.commit.user.email"));
 
     // these excluded
-    assertThat( ! properties.contains("git.branch"));
-    assertThat( ! properties.contains("git.commit.id.abbrev"));
-    assertThat( ! properties.contains("git.commit.message.full"));
-    assertThat( ! properties.contains("git.commit.message.short"));
-    assertThat( ! properties.contains("git.commit.time"));
+    assertThat(! properties.contains("git.branch"));
+    assertThat(! properties.contains("git.commit.id.abbrev"));
+    assertThat(! properties.contains("git.commit.message.full"));
+    assertThat(! properties.contains("git.commit.message.short"));
+    assertThat(! properties.contains("git.commit.time"));
   }
 
   @Test
@@ -200,7 +200,7 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties.contains("git.remote.origin.url"));
 
     // explicitly excluded -> overrules include only properties
-    assertThat( ! properties.contains("git.build.user.email"));
+    assertThat(! properties.contains("git.build.user.email"));
 
     // glob included
     assertThat(properties.contains("git.build.user.name"));
@@ -208,12 +208,12 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties.contains("git.commit.user.email"));
 
     // these excluded
-    assertThat( ! properties.contains("git.branch"));
-    assertThat( ! properties.contains("git.commit.id.full"));
-    assertThat( ! properties.contains("git.commit.id.abbrev"));
-    assertThat( ! properties.contains("git.commit.message.full"));
-    assertThat( ! properties.contains("git.commit.message.short"));
-    assertThat( ! properties.contains("git.commit.time"));
+    assertThat(! properties.contains("git.branch"));
+    assertThat(! properties.contains("git.commit.id.full"));
+    assertThat(! properties.contains("git.commit.id.abbrev"));
+    assertThat(! properties.contains("git.commit.message.full"));
+    assertThat(! properties.contains("git.commit.message.short"));
+    assertThat(! properties.contains("git.commit.time"));
   }
 
   @Test
@@ -235,8 +235,8 @@ public class GitCommitIdPluginIntegrationTest {
 
     // then
     // explicitly excluded
-    assertThat( ! properties.contains("git.remote.origin.url"));
-    assertThat( ! properties.contains(".remote.origin.url"));
+    assertThat(! properties.contains("git.remote.origin.url"));
+    assertThat(! properties.contains(".remote.origin.url"));
     assertThat(properties.contains("remote.origin.url"));
   }
 
@@ -261,7 +261,7 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat( ! properties.contains("git.commit.id.describe"));
+    assertThat(! properties.contains("git.commit.id.describe"));
   }
   
   @Test
@@ -678,7 +678,7 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat( ! properties.contains("git.commit.id.describe"));
+    assertThat(! properties.contains("git.commit.id.describe"));
   }
 
   @Test
