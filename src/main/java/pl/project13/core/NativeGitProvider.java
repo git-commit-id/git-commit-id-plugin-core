@@ -391,7 +391,8 @@ public class NativeGitProvider extends GitDataProvider {
      * @param nativeGitTimeoutInMs the timeout in milliseconds before the command get's terminated
      * @param command the command to execute
      * @return the output obtained from stdout by running the command
-     * @throws IOException the command execution failed
+     * @throws IOException if any underlying IOError occurred
+     * @throws GitCommitIdExecutionException the command execution failed
      */
     String run(File directory, long nativeGitTimeoutInMs, String command) throws IOException, GitCommitIdExecutionException;
 
@@ -401,7 +402,8 @@ public class NativeGitProvider extends GitDataProvider {
      * @param nativeGitTimeoutInMs the timeout in milliseconds before the command get's terminated
      * @param command the command to execute
      * @return false if the output of the command contains at least one line on stdout, true otherwise
-     * @throws IOException the command execution failed
+     * @throws IOException if any underlying IOError occurred
+     * @throws GitCommitIdExecutionException the command execution failed
      */
     boolean runEmpty(File directory, long nativeGitTimeoutInMs, String command) throws IOException, GitCommitIdExecutionException;
   }
