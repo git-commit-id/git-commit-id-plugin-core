@@ -247,10 +247,11 @@ public abstract class GitDataProvider implements GitProvider {
    *
    * @param evaluateOnCommit The commit that should be used as reference to generate the properties from.
    *                         Defaults to {@code HEAD}.
+   * @param env unmodifiable string map view of the current system environment {@link System#getenv}.
    * @param properties The Properties-Set that should be enriched by the generated one.
    * @throws GitCommitIdExecutionException In case any problem occurred during loading of the properties from the git repository.
    */
-  public void loadGitData(@Nonnull String evaluateOnCommit, @Nonnull Properties properties) throws GitCommitIdExecutionException {
+  protected void loadGitData(@Nonnull String evaluateOnCommit, @Nonnull Map<String,String> env, @Nonnull Properties properties) throws GitCommitIdExecutionException {
     this.evaluateOnCommit = evaluateOnCommit;
     init();
     // git.user.name
@@ -263,7 +264,7 @@ public abstract class GitDataProvider implements GitProvider {
       validateAbbrevLength(abbrevLength);
 
       // git.branch
-      maybePut(properties, GitCommitPropertyConstant.BRANCH, () -> determineBranchName(System.getenv()));
+      maybePut(properties, GitCommitPropertyConstant.BRANCH, () -> determineBranchName(env));
       // git.commit.id.describe
       maybePutGitDescribe(properties);
       loadShortDescribe(properties);
@@ -359,7 +360,7 @@ public abstract class GitDataProvider implements GitProvider {
    * If running within Jenkins/Hudson, honor the branch name passed via GIT_BRANCH env var.
    * This is necessary because Jenkins/Hudson always invoke build in a detached head state.
    *
-   * @param env environment settings
+   * @param env unmodifiable string map view of the current system environment {@link System#getenv}.
    * @return results of getBranchName() or, if in Jenkins/Hudson, value of GIT_BRANCH
    * @throws GitCommitIdExecutionException the branch name could not be determined
    */

@@ -34,6 +34,16 @@ public class GitCommitIdPlugin {
   public interface Callback {
 
     /**
+     * The system environment variables.
+     * Implementations usually do not need to set or overwrite this,
+     * this is mainly meant for testing purposes...
+     * @return unmodifiable string map view of the current system environment {@link System#getenv}.
+     */
+    default Map<String, String> getSystemEnv() {
+      return System.getenv();
+    }
+
+    /**
      * @return Supplier that provides the version of the project that is currently evaluated.
      *         Used to determine {@link GitCommitPropertyConstant#BUILD_VERSION}.
      */
@@ -312,7 +322,7 @@ public class GitCommitIdPlugin {
     Map<String, Supplier<String>> additionalProperties = Collections.singletonMap(
             GitCommitPropertyConstant.BUILD_VERSION, cb.supplyProjectVersion());
     BuildServerDataProvider buildServerDataProvider = BuildServerDataProvider.getBuildServerProvider(
-            System.getenv(), cb.getLogInterface());
+            cb.getSystemEnv(), cb.getLogInterface());
     buildServerDataProvider
             .setDateFormat(cb.getDateFormat())
             .setDateFormatTimeZone(cb.getDateFormatTimeZone())
@@ -345,7 +355,7 @@ public class GitCommitIdPlugin {
             .setIncludeOnlyProperties(cb.getIncludeOnlyProperties())
             .setOffline(cb.isOffline());
 
-    nativeGitProvider.loadGitData(cb.getEvaluateOnCommit(), properties);
+    nativeGitProvider.loadGitData(cb.getEvaluateOnCommit(), cb.getSystemEnv(), properties);
   }
 
   private static void loadGitDataWithJGit(@Nonnull Callback cb, @Nonnull Properties properties) throws GitCommitIdExecutionException {
@@ -362,6 +372,6 @@ public class GitCommitIdPlugin {
             .setIncludeOnlyProperties(cb.getIncludeOnlyProperties())
             .setOffline(cb.isOffline());
 
-    jGitProvider.loadGitData(cb.getEvaluateOnCommit(), properties);
+    jGitProvider.loadGitData(cb.getEvaluateOnCommit(), cb.getSystemEnv(), properties);
   }
 }

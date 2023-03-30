@@ -32,6 +32,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public class GitCommitIdTestCallback {
+  private Map<String, String> systemEnv = System.getenv();
   private String projectVersion = "dummy-version";
   private LogInterface logInterface = createDummyLogInterface();
   private String dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ";
@@ -63,6 +64,11 @@ public class GitCommitIdTestCallback {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public GitCommitIdTestCallback setSystemEnv(Map<String, String> systemEnv) {
+    this.systemEnv = systemEnv;
+    return this;
   }
 
   public GitCommitIdTestCallback setProjectVersion(String projectVersion) {
@@ -187,6 +193,11 @@ public class GitCommitIdTestCallback {
 
   public GitCommitIdPlugin.Callback build() {
     return new GitCommitIdPlugin.Callback() {
+      @Override
+      public Map<String, String> getSystemEnv() {
+        return systemEnv;
+      }
+
       @Override
       public Supplier<String> supplyProjectVersion() {
         return () -> projectVersion;

@@ -23,7 +23,6 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.junit.*;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.util.JsonManager;
@@ -43,10 +42,6 @@ import static org.assertj.core.api.Assertions.entry;
 
 @RunWith(JUnitParamsRunner.class)
 public class GitCommitIdPluginIntegrationTest {
-
-  @Rule
-  public final EnvironmentVariables environmentVariablesMock = new EnvironmentVariables();
-
   private static final boolean UseJGit = false;
   private static final boolean UseNativeGit = true;
 
@@ -282,16 +277,6 @@ public class GitCommitIdPluginIntegrationTest {
     env.put("JENKINS_URL", "http://myciserver.com");
     env.put("GIT_BRANCH", "mybranch");
     env.put("GIT_LOCAL_BRANCH", "localbranch");
-      
-    // remove all keys from System.getenv()
-    List<String> keySet = new ArrayList<>(System.getenv().keySet());
-    keySet.stream().forEach(key -> environmentVariablesMock.set(key, null));
-
-    // set System.getenv() to be equal to given parameter env
-    env.entrySet().stream().forEach(entry -> environmentVariablesMock.set(entry.getKey(), entry.getValue()));
-      
-    // verify that System.getenv() is actually equal
-    Assert.assertEquals(env, System.getenv());
 
     // reset repo and force detached HEAD
     try (final Git git = git(dotGitDirectory)) {
@@ -364,24 +349,12 @@ public class GitCommitIdPluginIntegrationTest {
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(dotGitDirectory)
                     .setUseNativeGit(useNativeGit)
+                    .setSystemEnv(env)
                     .setUseBranchNameFromBuildEnvironment(true)
                     .build();
     Properties properties = new Properties();
 
     // given
-
-    // remove all keys from System.getenv()
-    List<String> keySet = new ArrayList<>(System.getenv().keySet());
-    for (String key: keySet) {
-      environmentVariablesMock.set(key, null);
-    }
-    // set System.getenv() to be equal to given parameter env
-    for (Map.Entry<String, String> entry: env.entrySet()) {
-      environmentVariablesMock.set(entry.getKey(), entry.getValue());
-    }
-
-    // verify that System.getenv() is actually equal
-    Assert.assertEquals(env, System.getenv());
 
     // reset repo and force detached HEAD
     try (final Git git = git(dotGitDirectory)) {
