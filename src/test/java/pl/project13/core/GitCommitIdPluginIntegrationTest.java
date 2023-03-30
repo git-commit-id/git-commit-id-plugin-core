@@ -1517,7 +1517,7 @@ public class GitCommitIdPluginIntegrationTest {
 
   private void deleteDir(@Nonnull Path toBeDeleted) throws IOException {
     if (toBeDeleted.toFile().exists()) {
-      FileUtils.deleteDirectory(toBeDeleted.toFile());
+      FileUtils.forceDelete(toBeDeleted.toFile());
     }
   }
 
