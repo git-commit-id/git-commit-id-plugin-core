@@ -19,6 +19,7 @@ package pl.project13.core;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.junit.*;
@@ -33,10 +34,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1511,31 +1510,14 @@ public class GitCommitIdPluginIntegrationTest {
     Path dotGitDirectory = sandbox.resolve(".git");
     deleteDir(dotGitDirectory);
 
-    Path src = availableGitTestRepo.getDir().toPath();
-    Path dest = dotGitDirectory;
-
-    Stream<Path> files = Files.walk(src);
-    // copy all files and folders from `src` to `dest`
-    files.forEach(file -> {
-      try {
-        Files.copy(file, dest.resolve(src.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
-
-    // close the stream
-    files.close();
+    FileUtils.copyDirectory(availableGitTestRepo.getDir(), dotGitDirectory.toFile());
 
     return dotGitDirectory.toFile();
   }
 
   private void deleteDir(@Nonnull Path toBeDeleted) throws IOException {
     if (toBeDeleted.toFile().exists()) {
-      Files.walk(toBeDeleted)
-              .sorted(Comparator.reverseOrder())
-              .map(Path::toFile)
-              .forEach(File::delete);
+      FileUtils.deleteDirectory(toBeDeleted.toFile());
     }
   }
 
