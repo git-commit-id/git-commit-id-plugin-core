@@ -1510,7 +1510,7 @@ public class GitCommitIdPluginIntegrationTest {
     Path dotGitDirectory = sandbox.resolve(".git");
     deleteDir(dotGitDirectory);
 
-    FileUtils.copyDirectory(availableGitTestRepo.getDir(), dotGitDirectory.toFile());
+    FileUtils.copyDirectory(availableGitTestRepo.getDir().getAbsoluteFile(), dotGitDirectory.toFile());
 
     return dotGitDirectory.toFile();
   }
