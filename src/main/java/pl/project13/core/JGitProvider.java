@@ -89,7 +89,9 @@ public class JGitProvider extends GitDataProvider {
       ObjectId evaluateOnCommitResolvedObjectId = git.resolve(evaluateOnCommit);
 
       if ((evaluateOnCommitReference == null) && (evaluateOnCommitResolvedObjectId == null)) {
-        throw new GitCommitIdExecutionException("Could not get " + evaluateOnCommit + " Ref, are you sure you have set the dotGitDirectory property of this plugin to a valid path?");
+        throw new GitCommitIdExecutionException(
+                "Could not get " + evaluateOnCommit + " Ref, are you sure you have set the dotGitDirectory " +
+                        "property of this plugin to a valid path (currently set to " + dotGitDirectory + ")?");
       }
       revWalk = new RevWalk(git);
       ObjectId headObjectId;
@@ -100,7 +102,9 @@ public class JGitProvider extends GitDataProvider {
       }
 
       if (headObjectId == null) {
-        throw new GitCommitIdExecutionException("Could not get " + evaluateOnCommit + " Ref, are you sure you have some commits in the dotGitDirectory?");
+        throw new GitCommitIdExecutionException(
+                "Could not get " + evaluateOnCommit + " Ref, are you sure you have some " +
+                        "commits in the dotGitDirectory (currently set to " + dotGitDirectory + ")?");
       }
       evalCommit = revWalk.parseCommit(headObjectId);
       revWalk.markStart(evalCommit);
