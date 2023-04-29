@@ -104,6 +104,8 @@ public class JGitProvider extends GitDataProvider {
       }
       evalCommit = revWalk.parseCommit(headObjectId);
       revWalk.markStart(evalCommit);
+    } catch (GitCommitIdExecutionException e) {
+      throw e;
     } catch (Exception e) {
       throw new GitCommitIdExecutionException(e.getMessage(), e);
     }
