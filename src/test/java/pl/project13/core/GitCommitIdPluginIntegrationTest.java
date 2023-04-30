@@ -450,7 +450,7 @@ public class GitCommitIdPluginIntegrationTest {
                     .setUseNativeGit(useNativeGit)
                     .setShouldGenerateGitPropertiesFile(true)
                     .setGenerateGitPropertiesFilename(targetFilePath.getCanonicalPath())
-                    .setPropertiesOutputFormat("json")
+                    .setPropertiesOutputFormat(CommitIdPropertiesOutputFormat.JSON)
                     .build();
     Properties properties = new Properties();
 

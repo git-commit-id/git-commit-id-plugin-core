@@ -51,7 +51,7 @@ public class GitCommitIdTestCallback {
   private String evaluateOnCommit = "HEAD";
   private File dotGitDirectory;
   private boolean shouldGenerateGitPropertiesFile = false;
-  private String propertiesOutputFormat = "properties";
+  private CommitIdPropertiesOutputFormat propertiesOutputFormat = CommitIdPropertiesOutputFormat.PROPERTIES;
   private String projectName = "dummy-project";
   private File projectBaseDir;
   private String generateGitPropertiesFilename = "src/main/resources/git.properties";
@@ -161,7 +161,7 @@ public class GitCommitIdTestCallback {
     return this;
   }
 
-  public GitCommitIdTestCallback setPropertiesOutputFormat(String propertiesOutputFormat) {
+  public GitCommitIdTestCallback setPropertiesOutputFormat(CommitIdPropertiesOutputFormat propertiesOutputFormat) {
     this.propertiesOutputFormat = propertiesOutputFormat;
     return this;
   }
@@ -304,7 +304,7 @@ public class GitCommitIdTestCallback {
       }
 
       @Override
-      public String getPropertiesOutputFormat() {
+      public CommitIdPropertiesOutputFormat getPropertiesOutputFormat() {
         return propertiesOutputFormat;
       }
 

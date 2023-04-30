@@ -46,7 +46,7 @@ public class PropertiesFileGeneratorTest {
       // Ignore
     };
 
-    propertiesFileGenerator = new PropertiesFileGenerator(logInterface, buildFileChangeListener, "properties", "", "test");
+    propertiesFileGenerator = new PropertiesFileGenerator(logInterface, buildFileChangeListener, CommitIdPropertiesOutputFormat.PROPERTIES, "", "test");
   }
 
   @Test

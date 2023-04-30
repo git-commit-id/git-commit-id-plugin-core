@@ -34,14 +34,14 @@ public class PropertiesFileGenerator {
 
   private LogInterface log;
   private BuildFileChangeListener buildFileChangeListener;
-  private String format;
+  private CommitIdPropertiesOutputFormat propertiesOutputFormat;
   private String prefixDot;
   private String projectName;
 
-  public PropertiesFileGenerator(LogInterface log, BuildFileChangeListener buildFileChangeListener, String format, String prefixDot, String projectName) {
+  public PropertiesFileGenerator(LogInterface log, BuildFileChangeListener buildFileChangeListener, CommitIdPropertiesOutputFormat propertiesOutputFormat, String prefixDot, String projectName) {
     this.log = log;
     this.buildFileChangeListener = buildFileChangeListener;
-    this.format = format;
+    this.propertiesOutputFormat = propertiesOutputFormat;
     this.prefixDot = prefixDot;
     this.projectName = projectName;
   }
@@ -49,7 +49,7 @@ public class PropertiesFileGenerator {
   public void maybeGeneratePropertiesFile(@Nonnull Properties localProperties, File base, String propertiesFilename, Charset sourceCharset, boolean escapeUnicode) throws GitCommitIdExecutionException {
     try {
       final File gitPropsFile = craftPropertiesOutputFile(base, propertiesFilename);
-      final boolean isJsonFormat = "json".equalsIgnoreCase(format);
+      final boolean isJsonFormat = CommitIdPropertiesOutputFormat.JSON.equals(propertiesOutputFormat);
 
       boolean shouldGenerate = true;
 

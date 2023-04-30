@@ -248,10 +248,9 @@ public class GitCommitIdPlugin {
     void performPropertiesReplacement(Properties properties);
 
     /**
-     * @return The output format of the generated properties file. Can either be "properties" or "json".
+     * @return The output format of the generated properties file.
      */
-    // TODO: Why is this a String and not an enum?
-    String getPropertiesOutputFormat();
+    CommitIdPropertiesOutputFormat getPropertiesOutputFormat();
 
     /**
      * @return The BuildFileChangeListener that will be called when an output file of the plugin has changed
