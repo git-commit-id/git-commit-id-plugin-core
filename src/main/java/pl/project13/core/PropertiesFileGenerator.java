@@ -46,9 +46,8 @@ public class PropertiesFileGenerator {
     this.projectName = projectName;
   }
 
-  public void maybeGeneratePropertiesFile(@Nonnull Properties localProperties, File base, String propertiesFilename, Charset sourceCharset, boolean escapeUnicode) throws GitCommitIdExecutionException {
+  public void maybeGeneratePropertiesFile(@Nonnull Properties localProperties, File gitPropsFile, Charset sourceCharset, boolean escapeUnicode) throws GitCommitIdExecutionException {
     try {
-      final File gitPropsFile = craftPropertiesOutputFile(base, propertiesFilename);
       final boolean isJsonFormat = CommitIdPropertiesOutputFormat.JSON.equals(propertiesOutputFormat);
 
       boolean shouldGenerate = true;
@@ -114,16 +113,5 @@ public class PropertiesFileGenerator {
             .withSuppressDateInComment(true)
             .withOrdering(Comparator.nullsLast(Comparator.naturalOrder()))
             .build();
-  }
-
-  public static File craftPropertiesOutputFile(File base, String propertiesFilename) {
-    File returnPath = new File(base, propertiesFilename);
-
-    File currentPropertiesFilepath = new File(propertiesFilename);
-    if (currentPropertiesFilepath.isAbsolute()) {
-      returnPath = currentPropertiesFilepath;
-    }
-
-    return returnPath;
   }
 }

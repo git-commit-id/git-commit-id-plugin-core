@@ -57,7 +57,7 @@ public class PropertiesFileGeneratorTest {
     properties.put(GitCommitPropertyConstant.COMMIT_MESSAGE_SHORT, "測試中文");
 
     Path propertiesPath = temporaryFolder.getRoot().toPath().resolve("git.properties");
-    propertiesFileGenerator.maybeGeneratePropertiesFile(properties, temporaryFolder.getRoot(), propertiesPath.getFileName().toString(), UTF_8, false);
+    propertiesFileGenerator.maybeGeneratePropertiesFile(properties, propertiesPath.toFile(), UTF_8, false);
 
     byte[] bytes = Files.readAllBytes(propertiesPath);
     String actualContent = new String(bytes, UTF_8);
@@ -76,7 +76,7 @@ public class PropertiesFileGeneratorTest {
     properties.put(GitCommitPropertyConstant.COMMIT_MESSAGE_SHORT, "測試中文");
 
     Path propertiesPath = temporaryFolder.getRoot().toPath().resolve("git.properties");
-    propertiesFileGenerator.maybeGeneratePropertiesFile(properties, temporaryFolder.getRoot(), propertiesPath.getFileName().toString(), UTF_8, true);
+    propertiesFileGenerator.maybeGeneratePropertiesFile(properties, propertiesPath.toFile(), UTF_8, true);
 
     byte[] bytes = Files.readAllBytes(propertiesPath);
     String actualContent = new String(bytes, UTF_8);
@@ -94,7 +94,7 @@ public class PropertiesFileGeneratorTest {
     properties.put(GitCommitPropertyConstant.BRANCH, "develop");
   
     Path propertiesPath = temporaryFolder.getRoot().toPath().resolve("git.properties");
-    propertiesFileGenerator.maybeGeneratePropertiesFile(properties, temporaryFolder.getRoot(), propertiesPath.getFileName().toString(), UTF_8, true);
+    propertiesFileGenerator.maybeGeneratePropertiesFile(properties, propertiesPath.toFile(), UTF_8, true);
   
     byte[] bytes = Files.readAllBytes(propertiesPath);
     String actualContent = new String(bytes, UTF_8);
@@ -111,10 +111,10 @@ public class PropertiesFileGeneratorTest {
     properties.put(GitCommitPropertyConstant.BRANCH, "develop");
   
     Path propertiesPath = temporaryFolder.getRoot().toPath().resolve("git.properties");
-    propertiesFileGenerator.maybeGeneratePropertiesFile(properties, temporaryFolder.getRoot(), propertiesPath.getFileName().toString(), UTF_8, true);
+    propertiesFileGenerator.maybeGeneratePropertiesFile(properties, propertiesPath.toFile(), UTF_8, true);
 
     // Re-read the generated properties file.
-    propertiesFileGenerator.maybeGeneratePropertiesFile(properties, temporaryFolder.getRoot(), propertiesPath.getFileName().toString(), UTF_8, true);
+    propertiesFileGenerator.maybeGeneratePropertiesFile(properties, propertiesPath.toFile(), UTF_8, true);
 
     byte[] bytes = Files.readAllBytes(propertiesPath);
     String actualContent = new String(bytes, UTF_8);

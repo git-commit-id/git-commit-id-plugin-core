@@ -54,13 +54,14 @@ public class GitCommitIdTestCallback {
   private CommitIdPropertiesOutputFormat propertiesOutputFormat = CommitIdPropertiesOutputFormat.PROPERTIES;
   private String projectName = "dummy-project";
   private File projectBaseDir;
-  private String generateGitPropertiesFilename = "src/main/resources/git.properties";
+  private File generateGitPropertiesFilename;
   private Charset propertiesSourceCharset = StandardCharsets.UTF_8;
   private boolean shouldPropertiesEscapeUnicode = false;
 
   public GitCommitIdTestCallback() {
     try {
       this.projectBaseDir = Files.createTempDirectory("dummy-project-dir").toFile();
+      this.generateGitPropertiesFilename = projectBaseDir.toPath().resolve("src/main/resources/git.properties").toFile();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -176,7 +177,7 @@ public class GitCommitIdTestCallback {
     return this;
   }
 
-  public GitCommitIdTestCallback setGenerateGitPropertiesFilename(String generateGitPropertiesFilename) {
+  public GitCommitIdTestCallback setGenerateGitPropertiesFilename(File generateGitPropertiesFilename) {
     this.generateGitPropertiesFilename = generateGitPropertiesFilename;
     return this;
   }
@@ -326,7 +327,7 @@ public class GitCommitIdTestCallback {
       }
 
       @Override
-      public String getGenerateGitPropertiesFilename() {
+      public File getGenerateGitPropertiesFilename() {
         return generateGitPropertiesFilename;
       }
 

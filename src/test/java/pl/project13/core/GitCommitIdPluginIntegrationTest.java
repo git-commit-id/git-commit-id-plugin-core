@@ -421,7 +421,7 @@ public class GitCommitIdPluginIntegrationTest {
                     .setDotGitDirectory(dotGitDirectory)
                     .setUseNativeGit(useNativeGit)
                     .setShouldGenerateGitPropertiesFile(true)
-                    .setGenerateGitPropertiesFilename(targetFilePath.getCanonicalPath())
+                    .setGenerateGitPropertiesFilename(targetFilePath)
                     .build();
     Properties properties = new Properties();
 
@@ -449,7 +449,7 @@ public class GitCommitIdPluginIntegrationTest {
                     .setDotGitDirectory(dotGitDirectory)
                     .setUseNativeGit(useNativeGit)
                     .setShouldGenerateGitPropertiesFile(true)
-                    .setGenerateGitPropertiesFilename(targetFilePath.getCanonicalPath())
+                    .setGenerateGitPropertiesFilename(targetFilePath)
                     .setPropertiesOutputFormat(CommitIdPropertiesOutputFormat.JSON)
                     .build();
     Properties properties = new Properties();
