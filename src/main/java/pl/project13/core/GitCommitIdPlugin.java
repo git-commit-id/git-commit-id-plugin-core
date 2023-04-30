@@ -306,6 +306,7 @@ public class GitCommitIdPlugin {
               cb.getProjectName()
       ).maybeGeneratePropertiesFile(
               properties,
+              cb.getProjectBaseDir(),
               cb.getGenerateGitPropertiesFile(),
               cb.getPropertiesSourceCharset(),
               cb.shouldPropertiesEscapeUnicode()

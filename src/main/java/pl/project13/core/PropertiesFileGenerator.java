@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Properties;
 
@@ -46,8 +47,15 @@ public class PropertiesFileGenerator {
     this.projectName = projectName;
   }
 
-  public void maybeGeneratePropertiesFile(@Nonnull Properties localProperties, File gitPropsFile, Charset sourceCharset, boolean escapeUnicode) throws GitCommitIdExecutionException {
+  public void maybeGeneratePropertiesFile(
+          @Nonnull Properties localProperties,
+          File projectDir,
+          File propsFile,
+          Charset sourceCharset,
+          boolean escapeUnicode
+  ) throws GitCommitIdExecutionException {
     try {
+      final File gitPropsFile = craftPropertiesOutputFile(projectDir, propsFile);
       final boolean isJsonFormat = CommitIdPropertiesOutputFormat.JSON.equals(propertiesOutputFormat);
 
       boolean shouldGenerate = true;
@@ -113,5 +121,16 @@ public class PropertiesFileGenerator {
             .withSuppressDateInComment(true)
             .withOrdering(Comparator.nullsLast(Comparator.naturalOrder()))
             .build();
+  }
+
+  private static File craftPropertiesOutputFile(File projectDir, File propsFile) {
+    File returnPath;
+    if (propsFile.isAbsolute()) {
+      returnPath = propsFile;
+    } else {
+      returnPath = projectDir.toPath().resolve(propsFile.toPath()).toFile();
+    }
+
+    return returnPath;
   }
 }
