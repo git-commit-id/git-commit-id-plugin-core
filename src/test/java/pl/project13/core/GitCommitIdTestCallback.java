@@ -62,6 +62,7 @@ public class GitCommitIdTestCallback {
     try {
       this.projectBaseDir = Files.createTempDirectory("dummy-project-dir").toFile();
       this.generateGitPropertiesFilename = projectBaseDir.toPath().resolve("src/main/resources/git.properties").toFile();
+      projectBaseDir.deleteOnExit();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
