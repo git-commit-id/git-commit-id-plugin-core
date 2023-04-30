@@ -270,7 +270,7 @@ public class GitCommitIdPlugin {
     /**
      * @return The optional properties file where properties should be dumped into
      */
-    File getGenerateGitPropertiesFilename();
+    File getGenerateGitPropertiesFile();
 
     /**
      * @return The Charset in which format the properties should be dumped (e.g. 'UTF-8')
@@ -306,7 +306,7 @@ public class GitCommitIdPlugin {
               cb.getProjectName()
       ).maybeGeneratePropertiesFile(
               properties,
-              cb.getGenerateGitPropertiesFilename(),
+              cb.getGenerateGitPropertiesFile(),
               cb.getPropertiesSourceCharset(),
               cb.shouldPropertiesEscapeUnicode()
       );

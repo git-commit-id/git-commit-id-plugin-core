@@ -327,7 +327,7 @@ public class GitCommitIdTestCallback {
       }
 
       @Override
-      public File getGenerateGitPropertiesFilename() {
+      public File getGenerateGitPropertiesFile() {
         return generateGitPropertiesFilename;
       }
 
