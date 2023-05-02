@@ -123,7 +123,10 @@ public class PropertiesFileGenerator {
             .build();
   }
 
-  private static File craftPropertiesOutputFile(File projectDir, File propsFile) {
+  /**
+   * Used for up-to-date checks in maven plugin
+   */
+  public static File craftPropertiesOutputFile(File projectDir, File propsFile) {
     File returnPath;
     if (propsFile.isAbsolute()) {
       returnPath = propsFile;
