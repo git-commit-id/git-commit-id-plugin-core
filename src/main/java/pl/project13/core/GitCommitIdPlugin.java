@@ -29,6 +29,7 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 public class GitCommitIdPlugin {
   public interface Callback {
@@ -280,6 +281,8 @@ public class GitCommitIdPlugin {
     boolean shouldPropertiesEscapeUnicode();
   }
 
+  protected static final Pattern allowedCharactersForEvaluateOnCommit = Pattern.compile("[a-zA-Z0-9\\_\\-\\^\\/\\.]+");
+
   public static void runPlugin(@Nonnull Callback cb, @Nullable Properties contextProperties) throws GitCommitIdExecutionException {
     PropertiesFilterer propertiesFilterer = new PropertiesFilterer(cb.getLogInterface());
 
@@ -333,6 +336,11 @@ public class GitCommitIdPlugin {
   }
 
   protected static void loadGitData(@Nonnull Callback cb, @Nonnull Properties properties) throws GitCommitIdExecutionException {
+    var evaluateOnCommit = cb.getEvaluateOnCommit();
+    if ((evaluateOnCommit == null) || !allowedCharactersForEvaluateOnCommit.matcher(evaluateOnCommit).matches()) {
+      throw new GitCommitIdExecutionException("suspicious argument for evaluateOnCommit, aborting execution!");
+    }
+
     if (cb.useNativeGit()) {
       loadGitDataWithNativeGit(cb, properties);
     } else {
