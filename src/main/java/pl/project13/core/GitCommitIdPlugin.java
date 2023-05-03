@@ -336,7 +336,7 @@ public class GitCommitIdPlugin {
   }
 
   protected static void loadGitData(@Nonnull Callback cb, @Nonnull Properties properties) throws GitCommitIdExecutionException {
-    var evaluateOnCommit = cb.getEvaluateOnCommit();
+    String evaluateOnCommit = cb.getEvaluateOnCommit();
     if ((evaluateOnCommit == null) || !allowedCharactersForEvaluateOnCommit.matcher(evaluateOnCommit).matches()) {
       throw new GitCommitIdExecutionException("suspicious argument for evaluateOnCommit, aborting execution!");
     }

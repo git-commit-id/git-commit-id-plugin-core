@@ -112,7 +112,7 @@ public class GitCommitPropertyConstant {
    *   <li>Hudson/Jenkins</li>
    *   <li>TeamCity</li>
    *   <li>Travis</li>
-   *   <li>Gitlab CI (Gitlab >8.10 & Gitlab CI >0.5)</li>
+   *   <li>Gitlab CI (Gitlab &gt;8.10 &amp; Gitlab CI &gt;0.5)</li>
    *   <li>Azure DevOps</li>
    *   <li>AWS CodeBuild</li>
    *   <li>Bitbucket Pipelines</li>
@@ -129,7 +129,7 @@ public class GitCommitPropertyConstant {
    * <ul>
    *     <li>TeamCity</li>
    *     <li>Travis</li>
-   *     <li>Gitlab CI (Gitlab >11.0)</li>
+   *     <li>Gitlab CI (Gitlab &gt;11.0)</li>
    *     <li>AWS CodeBuild</li>
    * </ul>
    */
