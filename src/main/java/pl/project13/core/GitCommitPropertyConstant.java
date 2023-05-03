@@ -108,7 +108,7 @@ public class GitCommitPropertyConstant {
    *
    * Currently supported CIs:
    * <ul>
-   *    <li>Bamboo</li>
+   *   <li>Bamboo</li>
    *   <li>Hudson/Jenkins</li>
    *   <li>TeamCity</li>
    *   <li>Travis</li>
