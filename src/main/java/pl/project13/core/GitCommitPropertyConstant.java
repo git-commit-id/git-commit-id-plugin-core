@@ -23,16 +23,31 @@ package pl.project13.core;
 public class GitCommitPropertyConstant {
   /**
    * Represents the current branch name. Falls back to commit-id for detached HEAD.
+   *
+   * Note: When an user uses the {@code evaluateOnCommit} property to gather the
+   * branch for an arbitrary commit (really anything besides the default {@code HEAD})
+   * this plugin will perform a {@code git branch --points-at} which might
+   * return a comma separated list of branch names that points to the specified commit.
    */
   public static final String BRANCH = "branch";
   /**
    * Represents the count of commits that your local branch is ahead in perspective to the remote branch
    * (usually the case when your local branch has committed changes that are not pushed yet to the remote branch).
+   *
+   * <p>
+   *
+   * Note: To obtain the right value for this property this plugin should operate in online mode
+   * ({@code <offline>false</offline>}) so a {@code git fetch} will be performed before retrieval.
    */
   public static final String LOCAL_BRANCH_AHEAD = "local.branch.ahead";
   /**
    * Represents the count of commits that your local branch is behind in perspective to the remote branch
    * (usually the case when there are commits in the remote branch that are not yet integrated into your local branch).
+   *
+   * <p>
+   *
+   * Note: To obtain the right value for this property this plugin should operate in online mode
+   *  ({@code <offline>false</offline>}) so a {@code git fetch} will be performed before retrieval.
    */
   public static final String LOCAL_BRANCH_BEHIND = "local.branch.behind";
   /**
@@ -55,12 +70,13 @@ public class GitCommitPropertyConstant {
    */
   public static final String COMMIT_ID_ABBREV = "commit.id.abbrev";
   /**
-   * Represents an object a human readable name based on a the commit (provides git describe for the given commit).
+   * Represents an object a human readable name based on a the commit
+   * (provides {@code git describe} for the given commit).
    */
   public static final String COMMIT_DESCRIBE = "commit.id.describe";
   /**
    * Represents the same value as git.commit.id.describe,
-   * just with the git hash part removed (the g2414721 part from git describe).
+   * just with the git hash part removed (the {@code g2414721} part from {@code git describe}).
    */
   public static final String COMMIT_SHORT_DESCRIBE = "commit.id.describe-short";
   /**
@@ -77,7 +93,7 @@ public class GitCommitPropertyConstant {
    */
   public static final String BUILD_TIME = "build.time";
   /**
-   * Represents the project version of the current maven project.
+   * Represents the project version of the current project.
    */
   public static final String BUILD_VERSION = "build.version";
   /**
@@ -87,11 +103,35 @@ public class GitCommitPropertyConstant {
   /**
    * The git.build.number* variables are available on some hosted CIs and can be used to identify the
    * "number" of the build. This represents a project specific build number.
+   *
+   * <p>
+   *
+   * Currently supported CIs:
+   * <ul>
+   *    <li>Bamboo</li>
+   *   <li>Hudson/Jenkins</li>
+   *   <li>TeamCity</li>
+   *   <li>Travis</li>
+   *   <li>Gitlab CI (Gitlab >8.10 & Gitlab CI >0.5)</li>
+   *   <li>Azure DevOps</li>
+   *   <li>AWS CodeBuild</li>
+   *   <li>Bitbucket Pipelines</li>
+   * </ul>
    */
   public static final String BUILD_NUMBER = "build.number";
   /**
    * The git.build.number* variables are available on some hosted CIs and can be used to identify the
    * "number" of the build. This represents a system wide unique build number.
+   *
+   * <p>
+   *
+   * Currently supported CIs:
+   * <ul>
+   *     <li>TeamCity</li>
+   *     <li>Travis</li>
+   *     <li>Gitlab CI (Gitlab >11.0)</li>
+   *     <li>AWS CodeBuild</li>
+   * </ul>
    */
   public static final String BUILD_NUMBER_UNIQUE = "build.number.unique";
   /**
@@ -104,10 +144,18 @@ public class GitCommitPropertyConstant {
   public static final String COMMIT_AUTHOR_EMAIL = "commit.user.email";
   /**
    * Represents the raw body (unwrapped subject and body) of the commit message.
+   * Similar to running
+   * <pre>
+   *     git log -1 --pretty=format:%B
+   * </pre>
    */
   public static final String COMMIT_MESSAGE_FULL = "commit.message.full";
   /**
-   * Represents the subject of the commit message - may not be suitable for filenames.
+   * Represents the subject of the commit message - may <b>not</b> be suitable for filenames.
+   * Similar to running
+   * <pre>
+   *     git log -1 --pretty=format:%s
+   * </pre>
    */
   public static final String COMMIT_MESSAGE_SHORT = "commit.message.short";
   /**
@@ -128,6 +176,10 @@ public class GitCommitPropertyConstant {
   public static final String REMOTE_ORIGIN_URL = "remote.origin.url";
   /**
    * Represents a list of tags which contain the specified commit.
+   * Similar to running
+   * <pre>
+   *     git tag --contains
+   * </pre>
    */
   public static final String TAGS = "tags";
   /**
@@ -142,6 +194,10 @@ public class GitCommitPropertyConstant {
   public static final String CLOSEST_TAG_COMMIT_COUNT = "closest.tag.commit.count";
   /**
    * Represents the total count of all commits in the current repository.
+   * Similar to running
+   * <pre>
+   *     git rev-list HEAD --count
+   * </pre>
    */
   public static final String TOTAL_COMMIT_COUNT = "total.commit.count";
 
