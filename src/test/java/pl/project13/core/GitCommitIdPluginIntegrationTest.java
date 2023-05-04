@@ -26,6 +26,7 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.util.JsonManager;
+import pl.project13.core.util.XmlManager;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -460,7 +461,37 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(targetFilePath).exists();
     Properties p = JsonManager.readJsonProperties(targetFilePath, StandardCharsets.UTF_8);
     assertThat(p.size() > 10);
+    Assert.assertEquals(p, properties);
   }
+
+  @Test
+  @Parameters(method = "useNativeGit")
+  public void shouldGenerateCustomPropertiesFileXml(boolean useNativeGit) throws Exception {
+    // given
+    File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
+
+    File targetFilePath = sandbox.resolve("custom-git.xml").toFile();
+    targetFilePath.delete();
+
+    GitCommitIdPlugin.Callback cb =
+            new GitCommitIdTestCallback()
+                    .setDotGitDirectory(dotGitDirectory)
+                    .setUseNativeGit(useNativeGit)
+                    .setShouldGenerateGitPropertiesFile(true)
+                    .setGenerateGitPropertiesFilename(targetFilePath)
+                    .setPropertiesOutputFormat(CommitIdPropertiesOutputFormat.XML)
+                    .build();
+    Properties properties = new Properties();
+
+    // when
+    GitCommitIdPlugin.runPlugin(cb, properties);
+    // then
+    assertThat(targetFilePath).exists();
+    Properties p = XmlManager.readXmlProperties(targetFilePath, StandardCharsets.UTF_8);
+    assertThat(p.size() > 10);
+    Assert.assertEquals(p, properties);
+  }
+
 
   @Test
   @Parameters(method = "useNativeGit")

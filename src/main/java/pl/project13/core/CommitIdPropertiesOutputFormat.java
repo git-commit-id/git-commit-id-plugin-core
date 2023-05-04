@@ -30,4 +30,8 @@ public enum CommitIdPropertiesOutputFormat {
    * Indicator to generate a json file.
    */
   JSON,
+  /**
+   * Indicator to generate a xml file.
+   */
+  XML,
 }
