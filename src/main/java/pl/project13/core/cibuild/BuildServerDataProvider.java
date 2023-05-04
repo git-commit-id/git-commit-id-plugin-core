@@ -39,6 +39,9 @@ public abstract class BuildServerDataProvider {
   private List<String> excludeProperties = null;
   private List<String> includeOnlyProperties = null;
   private Map<String, Supplier<String>> additionalProperties = new HashMap<>();
+  protected static final String BRANCH_REF_PREFIX = "refs/heads/";
+  protected static final String PULL_REQUEST_REF_PREFIX = "refs/pull/";
+  protected static final String TAG_REF_PREFIX = "refs/tags/";
 
   BuildServerDataProvider(@Nonnull LogInterface log, @Nonnull Map<String, String> env) {
     this.log = log;

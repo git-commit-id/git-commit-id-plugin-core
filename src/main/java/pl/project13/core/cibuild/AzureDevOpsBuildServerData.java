@@ -36,7 +36,7 @@ public class AzureDevOpsBuildServerData extends BuildServerDataProvider {
    * @see <a href="https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml#build-variables">Azure DevOps - Build variables</a>
    */
   public static boolean isActiveServer(@Nonnull Map<String, String> env) {
-    return env.containsKey("AZURE_HTTP_USER_AGENT");
+    return env.containsKey("AZURE_HTTP_USER_AGENT") || env.containsKey("TF_BUILD");
   }
 
   @Override
@@ -48,8 +48,37 @@ public class AzureDevOpsBuildServerData extends BuildServerDataProvider {
 
   @Override
   public String getBuildBranch() {
-    String environmentBasedBuildSourceBranchName = env.get("BUILD_SOURCEBRANCHNAME");
-    log.info(String.format("Using environment variable based branch name. BUILD_SOURCEBRANCHNAME = %s", environmentBasedBuildSourceBranchName));
-    return environmentBasedBuildSourceBranchName;
+    /**
+     * Build.SourceBranch
+     * The branch of the triggering repo the build was queued for. Some examples:
+     * - Git repo branch: refs/heads/main
+     * - Git repo pull request: refs/pull/1/merge
+     * - TFVC repo branch: $/teamproject/main
+     * - TFVC repo gated check-in: Gated_2016-06-06_05.20.51.4369;username@live.com
+     * - TFVC repo shelveset build: myshelveset;username@live.com
+     * - When your pipeline is triggered by a tag: refs/tags/your-tag-name
+     */
+    String environmentBasedBuildSourceBranch = env.get("BUILD_SOURCEBRANCH");
+    if (environmentBasedBuildSourceBranch != null && !environmentBasedBuildSourceBranch.isEmpty()) {
+      if (environmentBasedBuildSourceBranch.startsWith(BRANCH_REF_PREFIX)) {
+        String branchName = environmentBasedBuildSourceBranch.substring(BRANCH_REF_PREFIX.length());
+        log.info(String.format("Using environment variable based branch name. BUILD_SOURCEBRANCH = %s (branch = %s)",
+            environmentBasedBuildSourceBranch, branchName));
+        return branchName;
+      }
+      if (environmentBasedBuildSourceBranch.startsWith(PULL_REQUEST_REF_PREFIX)) {
+        String branchName = environmentBasedBuildSourceBranch.substring(PULL_REQUEST_REF_PREFIX.length());
+        log.info(String.format("Using environment variable based branch name. BUILD_SOURCEBRANCH = %s (branch = %s)",
+            environmentBasedBuildSourceBranch, branchName));
+        return branchName;
+      }
+      if (environmentBasedBuildSourceBranch.startsWith(TAG_REF_PREFIX)) {
+        String branchName = environmentBasedBuildSourceBranch.substring(TAG_REF_PREFIX.length());
+        log.info(String.format("Using environment variable based branch name. BUILD_SOURCEBRANCH = %s (branch = %s)",
+            environmentBasedBuildSourceBranch, branchName));
+        return branchName;
+      }
+    }
+    return "";
   }
 }

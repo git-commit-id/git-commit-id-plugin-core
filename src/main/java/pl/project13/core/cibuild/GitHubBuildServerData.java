@@ -24,10 +24,6 @@ import java.util.Map;
 import java.util.Properties;
 
 public class GitHubBuildServerData extends BuildServerDataProvider {
-
-  private static final String BRANCH_REF_PREFIX = "refs/heads/";
-  private static final String PULL_REQUEST_REF_PREFIX = "refs/pull/";
-
   GitHubBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
     super(log, env);
   }
