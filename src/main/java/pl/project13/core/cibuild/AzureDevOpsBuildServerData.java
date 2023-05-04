@@ -46,18 +46,19 @@ public class AzureDevOpsBuildServerData extends BuildServerDataProvider {
     maybePut(properties, GitCommitPropertyConstant.BUILD_NUMBER, () -> buildNumber);
   }
 
+  /**
+   * Attempts to extract the branch name from the Build.SourceBranch
+   *
+   * The branch of the triggering repo the build was queued for. Some examples:
+   * - Git repo branch: refs/heads/main
+   * - Git repo pull request: refs/pull/1/merge
+   * - TFVC repo branch: $/teamproject/main
+   * - TFVC repo gated check-in: Gated_2016-06-06_05.20.51.4369;username@live.com
+   * - TFVC repo shelveset build: myshelveset;username@live.com
+   * - When your pipeline is triggered by a tag: refs/tags/your-tag-name
+   */
   @Override
   public String getBuildBranch() {
-    /**
-     * Build.SourceBranch
-     * The branch of the triggering repo the build was queued for. Some examples:
-     * - Git repo branch: refs/heads/main
-     * - Git repo pull request: refs/pull/1/merge
-     * - TFVC repo branch: $/teamproject/main
-     * - TFVC repo gated check-in: Gated_2016-06-06_05.20.51.4369;username@live.com
-     * - TFVC repo shelveset build: myshelveset;username@live.com
-     * - When your pipeline is triggered by a tag: refs/tags/your-tag-name
-     */
     String environmentBasedBuildSourceBranch = env.get("BUILD_SOURCEBRANCH");
     if (environmentBasedBuildSourceBranch != null && !environmentBasedBuildSourceBranch.isEmpty()) {
       if (environmentBasedBuildSourceBranch.startsWith(BRANCH_REF_PREFIX)) {
