@@ -37,10 +37,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(JUnitParamsRunner.class)
 public class GitCommitIdPluginIntegrationTest {
@@ -1503,6 +1506,21 @@ public class GitCommitIdPluginIntegrationTest {
 
       assertPropertyPresentAndEqual(properties, prefix + ".closest.tag.commit.count", "0");
     }
+  }
+
+  @Test
+  public void verifyAllowedCharactersForEvaluateOnCommit() {
+    Pattern p = GitCommitIdPlugin.allowedCharactersForEvaluateOnCommit;
+    assertTrue(p.matcher("5957e419d").matches());
+    assertTrue(p.matcher("my_tag").matches());
+    assertTrue(p.matcher("my-tag").matches());
+    assertTrue(p.matcher("my.tag").matches());
+    assertTrue(p.matcher("HEAD^1").matches());
+    assertTrue(p.matcher("feature/branch").matches());
+
+    assertFalse(p.matcher("; CODE INJECTION").matches());
+    assertFalse(p.matcher("|exit").matches());
+    assertFalse(p.matcher("&&cat /etc/passwd").matches());
   }
 
   private GitDescribeConfig createGitDescribeConfig(boolean forceLongFormat, int abbrev) {
