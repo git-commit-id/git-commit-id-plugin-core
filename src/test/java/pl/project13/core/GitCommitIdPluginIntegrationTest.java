@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.util.JsonManager;
 import pl.project13.core.util.XmlManager;
+import pl.project13.core.util.YmlManager;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -492,6 +493,33 @@ public class GitCommitIdPluginIntegrationTest {
     Assert.assertEquals(p, properties);
   }
 
+  @Test
+  @Parameters(method = "useNativeGit")
+  public void shouldGenerateCustomPropertiesFileYml(boolean useNativeGit) throws Exception {
+    // given
+    File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
+
+    File targetFilePath = sandbox.resolve("custom-git.yml").toFile();
+    targetFilePath.delete();
+
+    GitCommitIdPlugin.Callback cb =
+        new GitCommitIdTestCallback()
+            .setDotGitDirectory(dotGitDirectory)
+            .setUseNativeGit(useNativeGit)
+            .setShouldGenerateGitPropertiesFile(true)
+            .setGenerateGitPropertiesFilename(targetFilePath)
+            .setPropertiesOutputFormat(CommitIdPropertiesOutputFormat.YML)
+            .build();
+    Properties properties = new Properties();
+
+    // when
+    GitCommitIdPlugin.runPlugin(cb, properties);
+    // then
+    assertThat(targetFilePath).exists();
+    Properties p = YmlManager.readYmlProperties(targetFilePath, StandardCharsets.UTF_8);
+    assertThat(p.size() > 10);
+    Assert.assertEquals(p, properties);
+  }
 
   @Test
   @Parameters(method = "useNativeGit")

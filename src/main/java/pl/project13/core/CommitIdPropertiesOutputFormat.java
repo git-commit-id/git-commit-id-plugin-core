@@ -34,4 +34,8 @@ public enum CommitIdPropertiesOutputFormat {
    * Indicator to generate a xml file.
    */
   XML,
+  /**
+   * Indicator to generate a yml file.
+   */
+  YML,
 }

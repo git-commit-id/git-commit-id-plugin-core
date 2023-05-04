@@ -23,12 +23,12 @@ import pl.project13.core.util.BuildFileChangeListener;
 import pl.project13.core.util.JsonManager;
 import pl.project13.core.util.PropertyManager;
 import pl.project13.core.util.XmlManager;
+import pl.project13.core.util.YmlManager;
 
 import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Properties;
 
@@ -76,6 +76,10 @@ public class PropertiesFileGenerator {
               log.info(String.format("Reading existing xml file [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
               persistedProperties = XmlManager.readXmlProperties(gitPropsFile, sourceCharset);
               break;
+            case YML:
+              log.info(String.format("Reading existing yml file [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
+              persistedProperties = YmlManager.readYmlProperties(gitPropsFile, sourceCharset);
+              break;
             default:
               throw new GitCommitIdExecutionException("Not implemented:" + propertiesOutputFormat);
           }
@@ -114,6 +118,11 @@ public class PropertiesFileGenerator {
               log.info(String.format("Writing xml file to [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
               // using outputStream directly instead of outputWriter this way the UTF-8 characters appears in unicode escaped form
               XmlManager.dumpXml(outputStream, sortedLocalProperties, sourceCharset);
+              break;
+            case YML:
+              log.info(String.format("Writing yml file to [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
+              // using outputStream directly instead of outputWriter this way the UTF-8 characters appears in unicode escaped form
+              YmlManager.dumpYml(outputStream, sortedLocalProperties, sourceCharset);
               break;
             default:
               throw new GitCommitIdExecutionException("Not implemented:" + propertiesOutputFormat);
