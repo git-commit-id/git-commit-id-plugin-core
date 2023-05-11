@@ -19,12 +19,14 @@ package pl.project13.core.util;
 
 import nu.studer.java.util.OrderedProperties;
 import pl.project13.core.CannotReadFileException;
+import pl.project13.core.PropertiesFileGenerator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.Properties;
 
@@ -52,6 +54,16 @@ public class PropertyManager {
       return retVal.toJdkProperties();
     } catch (final Exception ex) {
       throw new CannotReadFileException(ex);
+    }
+  }
+
+  // For now used by the gradle plugin to expose properties to the project
+  public static void dumpProperties(File gitPropsFile, Properties properties, boolean escapeUnicode) throws IOException {
+    Files.createDirectories(gitPropsFile.getParentFile().toPath());
+    try (OutputStream outputStream = new FileOutputStream(gitPropsFile)) {
+      OrderedProperties sortedLocalProperties = PropertiesFileGenerator.createOrderedProperties();
+      properties.forEach((key, value) -> sortedLocalProperties.setProperty((String) key, (String) value));
+      PropertyManager.dumpProperties(outputStream, sortedLocalProperties, escapeUnicode);
     }
   }
 
