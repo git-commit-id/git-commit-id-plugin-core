@@ -19,16 +19,11 @@ package pl.project13.core;
 
 import nu.studer.java.util.OrderedProperties;
 import pl.project13.core.log.LogInterface;
-import pl.project13.core.util.BuildFileChangeListener;
-import pl.project13.core.util.JsonManager;
-import pl.project13.core.util.PropertyManager;
-import pl.project13.core.util.XmlManager;
-import pl.project13.core.util.YmlManager;
+import pl.project13.core.util.*;
 
 import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.Comparator;
 import java.util.Properties;
 
@@ -55,91 +50,37 @@ public class PropertiesFileGenerator {
           Charset sourceCharset,
           boolean escapeUnicode
   ) throws GitCommitIdExecutionException {
-    try {
-      final File gitPropsFile = craftPropertiesOutputFile(projectDir, propsFile);
-      boolean shouldGenerate = true;
+    final File gitPropsFile = craftPropertiesOutputFile(projectDir, propsFile);
+    boolean shouldGenerate = true;
 
-      if (gitPropsFile.exists()) {
-        final Properties persistedProperties;
+    if (gitPropsFile.exists()) {
+      final Properties persistedProperties;
+      try {
+        persistedProperties = GenericFileManager.readProperties(
+            log, propertiesOutputFormat, gitPropsFile, sourceCharset, projectName);
+        final Properties propertiesCopy = (Properties) localProperties.clone();
 
-        try {
-          switch (propertiesOutputFormat) {
-            case JSON:
-              log.info(String.format("Reading existing json file [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
-              persistedProperties = JsonManager.readJsonProperties(gitPropsFile, sourceCharset);
-              break;
-            case PROPERTIES:
-              log.info(String.format("Reading existing properties file [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
-              persistedProperties = PropertyManager.readProperties(gitPropsFile);
-              break;
-            case XML:
-              log.info(String.format("Reading existing xml file [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
-              persistedProperties = XmlManager.readXmlProperties(gitPropsFile, sourceCharset);
-              break;
-            case YML:
-              log.info(String.format("Reading existing yml file [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
-              persistedProperties = YmlManager.readYmlProperties(gitPropsFile, sourceCharset);
-              break;
-            default:
-              throw new GitCommitIdExecutionException("Not implemented:" + propertiesOutputFormat);
-          }
+        final String buildTimeProperty = prefixDot + GitCommitPropertyConstant.BUILD_TIME;
 
-          final Properties propertiesCopy = (Properties) localProperties.clone();
+        propertiesCopy.setProperty(buildTimeProperty, "");
+        persistedProperties.setProperty(buildTimeProperty, "");
 
-          final String buildTimeProperty = prefixDot + GitCommitPropertyConstant.BUILD_TIME;
-
-          propertiesCopy.setProperty(buildTimeProperty, "");
-          persistedProperties.setProperty(buildTimeProperty, "");
-
-          shouldGenerate = !propertiesCopy.equals(persistedProperties);
-        } catch (CannotReadFileException ex) {
-          // Read has failed, regenerate file
-          log.info(String.format("Cannot read properties file [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
-          shouldGenerate = true;
-        }
+        shouldGenerate = !propertiesCopy.equals(persistedProperties);
+      } catch (GitCommitIdExecutionException e) {
+        log.info(e.getMessage());
+        shouldGenerate = true;
       }
+    }
 
-      if (shouldGenerate) {
-        Files.createDirectories(gitPropsFile.getParentFile().toPath());
-        try (OutputStream outputStream = new FileOutputStream(gitPropsFile)) {
-          OrderedProperties sortedLocalProperties = PropertiesFileGenerator.createOrderedProperties();
-          localProperties.forEach((key, value) -> sortedLocalProperties.setProperty((String) key, (String) value));
-          switch (propertiesOutputFormat) {
-            case JSON:
-              log.info(String.format("Writing json file to [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
-              JsonManager.dumpJson(outputStream, sortedLocalProperties, sourceCharset);
-              break;
-            case PROPERTIES:
-              log.info(String.format("Writing properties file to [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
-              // using outputStream directly instead of outputWriter this way the UTF-8 characters appears in unicode escaped form
-              PropertyManager.dumpProperties(outputStream, sortedLocalProperties, escapeUnicode);
-              break;
-            case XML:
-              log.info(String.format("Writing xml file to [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
-              // using outputStream directly instead of outputWriter this way the UTF-8 characters appears in unicode escaped form
-              XmlManager.dumpXml(outputStream, sortedLocalProperties, sourceCharset);
-              break;
-            case YML:
-              log.info(String.format("Writing yml file to [%s] (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
-              // using outputStream directly instead of outputWriter this way the UTF-8 characters appears in unicode escaped form
-              YmlManager.dumpYml(outputStream, sortedLocalProperties, sourceCharset);
-              break;
-            default:
-              throw new GitCommitIdExecutionException("Not implemented:" + propertiesOutputFormat);
-          }
-        } catch (final IOException ex) {
-          throw new RuntimeException("Cannot create custom git properties file: " + gitPropsFile, ex);
-        }
+    if (shouldGenerate) {
+      GenericFileManager.dumpProperties(
+          log, propertiesOutputFormat, gitPropsFile, sourceCharset, escapeUnicode, projectName, localProperties);
 
-        if (buildFileChangeListener != null) {
-          buildFileChangeListener.changed(gitPropsFile);
-        }
-
-      } else {
-        log.info(String.format("Properties file [%s] is up-to-date (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
+      if (buildFileChangeListener != null) {
+        buildFileChangeListener.changed(gitPropsFile);
       }
-    } catch (IOException e) {
-      throw new GitCommitIdExecutionException(e);
+    } else {
+      log.info(String.format("Properties file [%s] is up-to-date (for module %s)...", gitPropsFile.getAbsolutePath(), projectName));
     }
   }
 
