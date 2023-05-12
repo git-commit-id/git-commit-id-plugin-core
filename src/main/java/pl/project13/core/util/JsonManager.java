@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class JsonManager {
-  public static void dumpJson(OutputStream outputStream, OrderedProperties sortedLocalProperties, Charset sourceCharset) throws IOException {
+  protected static void dumpJson(OutputStream outputStream, OrderedProperties sortedLocalProperties, Charset sourceCharset) throws IOException {
     JsonGeneratorFactory jgf = Json.createGeneratorFactory(
             Collections.singletonMap(JsonGenerator.PRETTY_PRINTING, true));
 
@@ -50,7 +50,7 @@ public class JsonManager {
 
   }
 
-  public static Properties readJsonProperties(@Nonnull File jsonFile, Charset sourceCharset) throws CannotReadFileException {
+  protected static Properties readJsonProperties(@Nonnull File jsonFile, Charset sourceCharset) throws CannotReadFileException {
     Properties retVal = new Properties();
     try (FileInputStream fis = new FileInputStream(jsonFile)) {
       try (InputStreamReader reader = new InputStreamReader(fis, sourceCharset)) {

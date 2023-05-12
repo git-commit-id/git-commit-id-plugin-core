@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class XmlManager {
-  public static void dumpXml(OutputStream outputStream, OrderedProperties sortedLocalProperties, Charset sourceCharset) throws IOException {
+  protected static void dumpXml(OutputStream outputStream, OrderedProperties sortedLocalProperties, Charset sourceCharset) throws IOException {
     /*
     TODO get rid of custom indents and use
     https://ewernli.com/2009/06/18/stax-pretty-printer/
@@ -66,7 +66,7 @@ public class XmlManager {
 
   }
 
-  public static Properties readXmlProperties(@Nonnull File xmlFile, Charset sourceCharset) throws CannotReadFileException {
+  protected static Properties readXmlProperties(@Nonnull File xmlFile, Charset sourceCharset) throws CannotReadFileException {
     Properties retVal = new Properties();
 
     try (FileInputStream fis = new FileInputStream(xmlFile)) {

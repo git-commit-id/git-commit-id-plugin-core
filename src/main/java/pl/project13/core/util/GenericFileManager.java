@@ -31,10 +31,36 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Properties;
 
 public class GenericFileManager {
+  public static Properties readPropertiesAsUtf8(
+      @Nonnull CommitIdPropertiesOutputFormat propertiesOutputFormat,
+      @Nonnull File gitPropsFile
+  ) throws GitCommitIdExecutionException {
+    return readProperties(
+      propertiesOutputFormat,
+      gitPropsFile,
+      StandardCharsets.UTF_8
+    );
+  }
+
+  public static Properties readProperties(
+      @Nonnull CommitIdPropertiesOutputFormat propertiesOutputFormat,
+      @Nonnull File gitPropsFile,
+      @Nonnull Charset sourceCharset
+  ) throws GitCommitIdExecutionException {
+    return readProperties(
+      null,
+      propertiesOutputFormat,
+      gitPropsFile,
+      sourceCharset,
+      null
+    );
+  }
+
   public static Properties readProperties(
       @Nullable LogInterface log,
       @Nonnull CommitIdPropertiesOutputFormat propertiesOutputFormat,
@@ -47,7 +73,7 @@ public class GenericFileManager {
     try {
       if (log != null) {
         log.info(String.format("Reading existing %s file [%s] (for project %s)...",
-          propertiesOutputFormat.name().toLowerCase(), gitPropsFile.getAbsolutePath(), projectName));
+            propertiesOutputFormat.name().toLowerCase(), gitPropsFile.getAbsolutePath(), projectName));
       }
       switch (propertiesOutputFormat) {
         case JSON:
@@ -85,7 +111,7 @@ public class GenericFileManager {
     try {
       if (log != null) {
         log.info(String.format("Writing %s file [%s] (for project %s)...",
-          propertiesOutputFormat.name().toLowerCase(), gitPropsFile.getAbsolutePath(), projectName));
+            propertiesOutputFormat.name().toLowerCase(), gitPropsFile.getAbsolutePath(), projectName));
       }
 
       Files.createDirectories(gitPropsFile.getParentFile().toPath());

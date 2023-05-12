@@ -25,6 +25,7 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import pl.project13.core.git.GitDescribeConfig;
+import pl.project13.core.util.GenericFileManager;
 import pl.project13.core.util.JsonManager;
 import pl.project13.core.util.XmlManager;
 import pl.project13.core.util.YmlManager;
@@ -445,6 +446,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateCustomPropertiesFileJson(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
+    CommitIdPropertiesOutputFormat commitIdPropertiesOutputFormat = CommitIdPropertiesOutputFormat.JSON;
     
     File targetFilePath = sandbox.resolve("custom-git.json").toFile();
     targetFilePath.delete();
@@ -455,7 +457,7 @@ public class GitCommitIdPluginIntegrationTest {
                     .setUseNativeGit(useNativeGit)
                     .setShouldGenerateGitPropertiesFile(true)
                     .setGenerateGitPropertiesFilename(targetFilePath)
-                    .setPropertiesOutputFormat(CommitIdPropertiesOutputFormat.JSON)
+                    .setPropertiesOutputFormat(commitIdPropertiesOutputFormat)
                     .build();
     Properties properties = new Properties();
 
@@ -463,7 +465,7 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
     // then
     assertThat(targetFilePath).exists();
-    Properties p = JsonManager.readJsonProperties(targetFilePath, StandardCharsets.UTF_8);
+    Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
     assertThat(p.size() > 10);
     Assert.assertEquals(p, properties);
   }
@@ -473,6 +475,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateCustomPropertiesFileXml(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
+    CommitIdPropertiesOutputFormat commitIdPropertiesOutputFormat = CommitIdPropertiesOutputFormat.XML;
 
     File targetFilePath = sandbox.resolve("custom-git.xml").toFile();
     targetFilePath.delete();
@@ -483,7 +486,7 @@ public class GitCommitIdPluginIntegrationTest {
                     .setUseNativeGit(useNativeGit)
                     .setShouldGenerateGitPropertiesFile(true)
                     .setGenerateGitPropertiesFilename(targetFilePath)
-                    .setPropertiesOutputFormat(CommitIdPropertiesOutputFormat.XML)
+                    .setPropertiesOutputFormat(commitIdPropertiesOutputFormat)
                     .build();
     Properties properties = new Properties();
 
@@ -491,7 +494,7 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
     // then
     assertThat(targetFilePath).exists();
-    Properties p = XmlManager.readXmlProperties(targetFilePath, StandardCharsets.UTF_8);
+    Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
     assertThat(p.size() > 10);
     Assert.assertEquals(p, properties);
   }
@@ -501,6 +504,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateCustomPropertiesFileYml(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
+    CommitIdPropertiesOutputFormat commitIdPropertiesOutputFormat = CommitIdPropertiesOutputFormat.YML;
 
     File targetFilePath = sandbox.resolve("custom-git.yml").toFile();
     targetFilePath.delete();
@@ -511,7 +515,7 @@ public class GitCommitIdPluginIntegrationTest {
             .setUseNativeGit(useNativeGit)
             .setShouldGenerateGitPropertiesFile(true)
             .setGenerateGitPropertiesFilename(targetFilePath)
-            .setPropertiesOutputFormat(CommitIdPropertiesOutputFormat.YML)
+            .setPropertiesOutputFormat(commitIdPropertiesOutputFormat)
             .build();
     Properties properties = new Properties();
 
@@ -519,7 +523,7 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
     // then
     assertThat(targetFilePath).exists();
-    Properties p = YmlManager.readYmlProperties(targetFilePath, StandardCharsets.UTF_8);
+    Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
     assertThat(p.size() > 10);
     Assert.assertEquals(p, properties);
   }

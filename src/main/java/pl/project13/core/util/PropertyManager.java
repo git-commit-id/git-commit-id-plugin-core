@@ -40,11 +40,11 @@ public class PropertyManager {
     return null != value && !" ".equals(value.trim().replaceAll(" ", ""));
   }
 
-  public static Properties readProperties(@Nonnull File propertiesFile) throws CannotReadFileException {
+  protected static Properties readProperties(@Nonnull File propertiesFile) throws CannotReadFileException {
     return PropertyManager.readProperties(propertiesFile, StandardCharsets.ISO_8859_1);
   }
 
-  public static Properties readProperties(@Nonnull File propertiesFile, @Nonnull Charset charset) throws CannotReadFileException {
+  protected static Properties readProperties(@Nonnull File propertiesFile, @Nonnull Charset charset) throws CannotReadFileException {
     try (FileInputStream fis = new FileInputStream(propertiesFile);
          InputStreamReader reader = new InputStreamReader(fis, charset)) {
       final OrderedProperties retVal = new OrderedProperties();
@@ -55,7 +55,7 @@ public class PropertyManager {
     }
   }
 
-  public static void dumpProperties(OutputStream outputStream, OrderedProperties sortedLocalProperties, boolean escapeUnicode) throws IOException {
+  protected static void dumpProperties(OutputStream outputStream, OrderedProperties sortedLocalProperties, boolean escapeUnicode) throws IOException {
     try (Writer outputWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
       // use the OrderedProperties.store(Writer, ...)-method to avoid illegal reflective access warning
       // see: https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/523

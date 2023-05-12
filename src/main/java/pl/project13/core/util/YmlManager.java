@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class YmlManager {
-  public static void dumpYml(OutputStream outputStream, OrderedProperties sortedLocalProperties, Charset sourceCharset) throws IOException {
+  protected static void dumpYml(OutputStream outputStream, OrderedProperties sortedLocalProperties, Charset sourceCharset) throws IOException {
     try (Writer outputWriter = new OutputStreamWriter(outputStream, sourceCharset)) {
       DumperOptions dumperOptions = new DumperOptions();
       dumperOptions.setAllowUnicode(true);
@@ -56,7 +56,7 @@ public class YmlManager {
     }
   }
 
-  public static Properties readYmlProperties(@Nonnull File xmlFile, Charset sourceCharset) throws CannotReadFileException {
+  protected static Properties readYmlProperties(@Nonnull File xmlFile, Charset sourceCharset) throws CannotReadFileException {
     Properties retVal = new Properties();
 
     try (FileInputStream fis = new FileInputStream(xmlFile)) {
