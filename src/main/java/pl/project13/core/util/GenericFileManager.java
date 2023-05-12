@@ -24,6 +24,8 @@ import pl.project13.core.GitCommitIdExecutionException;
 import pl.project13.core.PropertiesFileGenerator;
 import pl.project13.core.log.LogInterface;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,30 +36,30 @@ import java.util.Properties;
 
 public class GenericFileManager {
   public static Properties readProperties(
-      LogInterface log,
-      CommitIdPropertiesOutputFormat propertiesOutputFormat,
-      File gitPropsFile,
-      Charset sourceCharset,
-      String projectName
+      @Nullable LogInterface log,
+      @Nonnull CommitIdPropertiesOutputFormat propertiesOutputFormat,
+      @Nonnull File gitPropsFile,
+      @Nonnull Charset sourceCharset,
+      @Nullable String projectName
   ) throws GitCommitIdExecutionException {
     final Properties persistedProperties;
 
     try {
+      if (log != null) {
+        log.info(String.format("Reading existing %s file [%s] (for project %s)...",
+          propertiesOutputFormat.name().toLowerCase(), gitPropsFile.getAbsolutePath(), projectName));
+      }
       switch (propertiesOutputFormat) {
         case JSON:
-          log.info(String.format("Reading existing json file [%s] (for project %s)...", gitPropsFile.getAbsolutePath(), projectName));
           persistedProperties = JsonManager.readJsonProperties(gitPropsFile, sourceCharset);
           break;
         case PROPERTIES:
-          log.info(String.format("Reading existing properties file [%s] (for project %s)...", gitPropsFile.getAbsolutePath(), projectName));
           persistedProperties = PropertyManager.readProperties(gitPropsFile);
           break;
         case XML:
-          log.info(String.format("Reading existing xml file [%s] (for project %s)...", gitPropsFile.getAbsolutePath(), projectName));
           persistedProperties = XmlManager.readXmlProperties(gitPropsFile, sourceCharset);
           break;
         case YML:
-          log.info(String.format("Reading existing yml file [%s] (for project %s)...", gitPropsFile.getAbsolutePath(), projectName));
           persistedProperties = YmlManager.readYmlProperties(gitPropsFile, sourceCharset);
           break;
         default:
@@ -66,42 +68,43 @@ public class GenericFileManager {
     } catch (final CannotReadFileException ex) {
       // Read has failed, regenerate file
       throw new GitCommitIdExecutionException(
-        String.format("Cannot read properties file [%s] (for project %s)...", gitPropsFile.getAbsolutePath(), projectName));
+        String.format("Cannot read file [%s] (for project %s)...", gitPropsFile.getAbsolutePath(), projectName));
     }
     return persistedProperties;
   }
 
   public static void dumpProperties(
-      LogInterface log,
-      CommitIdPropertiesOutputFormat propertiesOutputFormat,
-      File gitPropsFile,
-      Charset sourceCharset,
+      @Nullable LogInterface log,
+      @Nonnull CommitIdPropertiesOutputFormat propertiesOutputFormat,
+      @Nonnull File gitPropsFile,
+      @Nonnull Charset sourceCharset,
       boolean escapeUnicode,
-      String projectName,
-      Properties propertiesToDump
+      @Nullable String projectName,
+      @Nonnull Properties propertiesToDump
   ) throws GitCommitIdExecutionException {
     try {
+      if (log != null) {
+        log.info(String.format("Writing %s file [%s] (for project %s)...",
+          propertiesOutputFormat.name().toLowerCase(), gitPropsFile.getAbsolutePath(), projectName));
+      }
+
       Files.createDirectories(gitPropsFile.getParentFile().toPath());
       try (final OutputStream outputStream = new FileOutputStream(gitPropsFile)) {
         OrderedProperties sortedLocalProperties = PropertiesFileGenerator.createOrderedProperties();
         propertiesToDump.forEach((key, value) -> sortedLocalProperties.setProperty((String) key, (String) value));
         switch (propertiesOutputFormat) {
           case JSON:
-            log.info(String.format("Writing json file to [%s] (for project %s)...", gitPropsFile.getAbsolutePath(), projectName));
             JsonManager.dumpJson(outputStream, sortedLocalProperties, sourceCharset);
             break;
           case PROPERTIES:
-            log.info(String.format("Writing properties file to [%s] (for project %s)...", gitPropsFile.getAbsolutePath(), projectName));
             // using outputStream directly instead of outputWriter this way the UTF-8 characters appears in unicode escaped form
             PropertyManager.dumpProperties(outputStream, sortedLocalProperties, escapeUnicode);
             break;
           case XML:
-            log.info(String.format("Writing xml file to [%s] (for project %s)...", gitPropsFile.getAbsolutePath(), projectName));
             // using outputStream directly instead of outputWriter this way the UTF-8 characters appears in unicode escaped form
             XmlManager.dumpXml(outputStream, sortedLocalProperties, sourceCharset);
             break;
           case YML:
-            log.info(String.format("Writing yml file to [%s] (for project %s)...", gitPropsFile.getAbsolutePath(), projectName));
             // using outputStream directly instead of outputWriter this way the UTF-8 characters appears in unicode escaped form
             YmlManager.dumpYml(outputStream, sortedLocalProperties, sourceCharset);
             break;
