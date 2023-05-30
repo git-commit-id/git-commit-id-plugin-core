@@ -114,7 +114,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   @Nonnull
   public DescribeCommand always(boolean always) {
     this.alwaysFlag = always;
-    log.info(String.format("--always = %s", always));
+    log.debug(String.format("--always = %s", always));
     return this;
   }
 
@@ -136,7 +136,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   public DescribeCommand forceLongFormat(@Nullable Boolean forceLongFormat) {
     if (forceLongFormat != null && forceLongFormat) {
       this.forceLongFormat = true;
-      log.info(String.format("--long = %s", true));
+      log.debug(String.format("--long = %s", true));
     }
     return this;
   }
@@ -161,7 +161,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
       if (n < 0) {
         throw new IllegalArgumentException("N (commit abbrev length) must be positive! (Was [" + n + "])");
       }
-      log.info(String.format("--abbrev = %s", n));
+      log.debug(String.format("--abbrev = %s", n));
       abbrev = n;
     }
     return this;
@@ -202,7 +202,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   public DescribeCommand tags(@Nullable Boolean includeLightweightTagsInSearch) {
     if (includeLightweightTagsInSearch != null && includeLightweightTagsInSearch) {
       tagsFlag = includeLightweightTagsInSearch;
-      log.info(String.format("--tags = %s", includeLightweightTagsInSearch));
+      log.debug(String.format("--tags = %s", includeLightweightTagsInSearch));
     }
     return this;
   }
@@ -246,7 +246,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   @Nonnull
   public DescribeCommand dirty(@Nullable String dirtyMarker) {
     Optional<String> option = Optional.ofNullable(dirtyMarker);
-    log.info(String.format("--dirty = %s", option.orElse("")));
+    log.debug(String.format("--dirty = %s", option.orElse("")));
     this.dirtyOption = option;
     return this;
   }
@@ -262,7 +262,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   public DescribeCommand match(@Nullable String pattern) {
     if (!"*".equals(pattern)) {
       matchOption = Optional.ofNullable(pattern);
-      log.info(String.format("--match = %s", matchOption.orElse("")));
+      log.debug(String.format("--match = %s", matchOption.orElse("")));
     }
     return this;
   }

@@ -124,7 +124,7 @@ public class JGitCommon {
   protected Map<ObjectId, List<String>> findTagObjectIds(@Nonnull Repository repo, boolean includeLightweightTags, String matchPattern) {
     Map<ObjectId, List<DatedRevTag>> commitIdsToTags = getCommitIdsToTags(repo, includeLightweightTags, matchPattern);
     Map<ObjectId, List<String>> commitIdsToTagNames = transformRevTagsMapToDateSortedTagNames(commitIdsToTags);
-    log.info(String.format("Created map: [%s]", commitIdsToTagNames));
+    log.debug(String.format("Created map: [%s]", commitIdsToTagNames));
 
     return commitIdsToTagNames;
   }
@@ -137,7 +137,7 @@ public class JGitCommon {
         RevCommit evalCommit = walk.parseCommit(evalCommitId);
         walk.dispose();
 
-        log.info(String.format("evalCommit is [%s]", evalCommit.getName()));
+        log.debug(String.format("evalCommit is [%s]", evalCommit.getName()));
         return evalCommit;
       }
     } catch (IOException ex) {
@@ -153,7 +153,7 @@ public class JGitCommon {
 
       List<Ref> tagRefs = Git.wrap(repo).tagList().call();
       Pattern regex = Pattern.compile(matchPattern);
-      log.info(String.format("Tag refs [%s]", tagRefs));
+      log.debug(String.format("Tag refs [%s]", tagRefs));
 
       for (Ref tagRef : tagRefs) {
         walk.reset();
@@ -168,7 +168,7 @@ public class JGitCommon {
         try {
           final RevTag revTag = walk.parseTag(resolvedCommitId);
           ObjectId taggedCommitId = revTag.getObject().getId();
-          log.info(String.format("Resolved tag [%s] [%s], points at [%s] ", revTag.getTagName(), revTag.getTaggerIdent(), taggedCommitId));
+          log.debug(String.format("Resolved tag [%s] [%s], points at [%s] ", revTag.getTagName(), revTag.getTaggerIdent(), taggedCommitId));
 
           // sometimes a tag, may point to another tag, so we need to unpack it
           while (isTagId(taggedCommitId)) {
@@ -185,7 +185,7 @@ public class JGitCommon {
           // it's an lightweight tag! (yeah, really)
           if (includeLightweightTags) {
             // --tags means "include lightweight tags"
-            log.info(String.format("Including lightweight tag [%s]", name));
+            log.debug(String.format("Including lightweight tag [%s]", name));
 
             DatedRevTag datedRevTag = new DatedRevTag(resolvedCommitId, name);
 
@@ -201,7 +201,7 @@ public class JGitCommon {
       }
 
       for (Map.Entry<ObjectId, List<DatedRevTag>> entry : commitIdsToTags.entrySet()) {
-        log.info(String.format("key [%s], tags => [%s] ", entry.getKey(), entry.getValue()));
+        log.debug(String.format("key [%s], tags => [%s] ", entry.getKey(), entry.getValue()));
       }
       return commitIdsToTags;
     } catch (Exception e) {
