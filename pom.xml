@@ -33,7 +33,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.target>11</java.target>
 
-        <jgit.version>6.5.0.202303070854-r</jgit.version>
+        <jgit.version>6.6.0.202305301015-r</jgit.version>
         <junit.version>4.13.2</junit.version>
         <mockito.version>5.3.1</mockito.version>
         <assertj.version>3.24.2</assertj.version>
