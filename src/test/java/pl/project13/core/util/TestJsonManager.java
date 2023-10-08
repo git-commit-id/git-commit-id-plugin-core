@@ -52,7 +52,6 @@ public class TestJsonManager {
     // then
     Assert.assertEquals(
             Arrays.asList(
-                    "",
                     "{",
                     "    \"git.commit.id\": \"beef4e92e9cabd043b105a14514289f331b40bf2\",",
                     "    \"git.commit.id.abbrev\": \"beef4e9\"",
@@ -101,7 +100,6 @@ public class TestJsonManager {
     // then
     Assert.assertEquals(
             Arrays.asList(
-                    "",
                     "{",
                     "    \"git.commit.id.abbrev\": \"beef4e9\",",
                     "    \"git.commit.id.full\": \"beef4e92e9cabd043b105a14514289f331b40bf2\"",
@@ -150,7 +148,6 @@ public class TestJsonManager {
     // then
     Assert.assertEquals(
             Arrays.asList(
-                    "",
                     "{",
                     "    \"git.commit.message.full\": \"initial commit on test project with some special characters äöüàñ.\",",
                     "    \"git.commit.user.name\": \"Александр Eliáš\"",
