@@ -17,15 +17,15 @@
 
 package pl.project13.core.util;
 
+import jakarta.json.Json;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonString;
+import jakarta.json.stream.JsonGenerator;
+import jakarta.json.stream.JsonGeneratorFactory;
 import nu.studer.java.util.OrderedProperties;
 import pl.project13.core.CannotReadFileException;
 
 import javax.annotation.Nonnull;
-import javax.json.Json;
-import javax.json.JsonReader;
-import javax.json.JsonString;
-import javax.json.stream.JsonGenerator;
-import javax.json.stream.JsonGeneratorFactory;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Collections;
