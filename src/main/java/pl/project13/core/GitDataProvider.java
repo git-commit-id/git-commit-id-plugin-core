@@ -305,6 +305,7 @@ public abstract class GitDataProvider implements GitProvider {
 
       //
       maybePut(properties, GitCommitPropertyConstant.TAGS, this::getTags);
+      maybePut(properties, GitCommitPropertyConstant.TAG, this::getTag);
 
       maybePut(properties,GitCommitPropertyConstant.CLOSEST_TAG_NAME, this::getClosestTagName);
       maybePut(properties,GitCommitPropertyConstant.CLOSEST_TAG_COMMIT_COUNT, this::getClosestTagCommitCount);

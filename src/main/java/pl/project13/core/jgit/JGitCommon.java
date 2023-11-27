@@ -78,6 +78,30 @@ public class JGitCommon {
             .collect(Collectors.toList());
   }
 
+  public Collection<String> getTag(Repository repo, final ObjectId objectId) throws GitAPIException {
+    try (Git git = Git.wrap(repo)) {
+      Collection<String> tags = getTagsOnObjectId(git, objectId);
+      return tags;
+    }
+  }
+
+  private Collection<String> getTagsOnObjectId(final Git git, final ObjectId objectId) throws GitAPIException {
+    return git.tagList().call()
+            .stream()
+            .filter(tagRef -> {
+              try {
+                if (objectId.name().equals(tagRef.getObjectId().name())) {
+                  return true;
+                }
+              } catch (Exception ignored) {
+                log.debug(String.format("Failed while getTagOnObjectId [%s] -- ", tagRef));
+              }
+              return false;
+            })
+            .map(tagRef -> trimFullTagName(tagRef.getName()))
+            .collect(Collectors.toList());
+  }
+
   public String getClosestTagName(@Nonnull String evaluateOnCommit, @Nonnull Repository repo, GitDescribeConfig gitDescribe) {
     // TODO: Why does some tests fail when it gets headCommit from JGitprovider?
     RevCommit headCommit = findEvalCommitObjectId(evaluateOnCommit, repo);

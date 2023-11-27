@@ -188,6 +188,14 @@ public class GitCommitPropertyConstant {
    */
   public static final String CLOSEST_TAG_NAME = "closest.tag.name";
   /**
+   * Represents the tag on the current commit.
+   * Similar to running
+   * <pre>
+   *     git tag --points-at HEAD
+   * </pre>
+   */
+  public static final String TAG = "tag";
+  /**
    * Represents the number of commits to the closest available tag.
    * The closest tag may depend on your git describe config that may or may not take lightweight tags into consideration.
    */

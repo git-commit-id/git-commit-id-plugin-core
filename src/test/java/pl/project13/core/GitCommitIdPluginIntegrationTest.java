@@ -982,6 +982,30 @@ public class GitCommitIdPluginIntegrationTest {
 
   @Test
   @Parameters(method = "useNativeGit")
+  public void shouldGenerateTagInformationWhenOnATag(boolean useNativeGit) throws Exception {
+    // given
+    File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
+
+    GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(false, 7);
+    gitDescribeConfig.setDirty("-dirty"); // checking if dirty works as expected
+
+    GitCommitIdPlugin.Callback cb =
+            new GitCommitIdTestCallback()
+                    .setDotGitDirectory(dotGitDirectory)
+                    .setUseNativeGit(useNativeGit)
+                    .setGitDescribeConfig(gitDescribeConfig)
+                    .build();
+    Properties properties = new Properties();
+
+    // when
+    GitCommitIdPlugin.runPlugin(cb, properties);
+
+    // then
+    assertPropertyPresentAndEqual(properties, "git.tag", "v1.0.0");
+  }
+
+  @Test
+  @Parameters(method = "useNativeGit")
   public void shouldGenerateClosestTagInformationWhenOnATagAndDirty(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG_DIRTY);
