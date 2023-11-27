@@ -57,6 +57,8 @@ public interface GitProvider {
 
   String getTags() throws GitCommitIdExecutionException;
 
+  String getTag() throws GitCommitIdExecutionException;
+
   String getClosestTagName() throws GitCommitIdExecutionException;
 
   String getClosestTagCommitCount() throws GitCommitIdExecutionException;

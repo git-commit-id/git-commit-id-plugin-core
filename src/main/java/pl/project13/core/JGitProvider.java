@@ -257,6 +257,19 @@ public class JGitProvider extends GitDataProvider {
   }
 
   @Override
+  public String getTag() throws GitCommitIdExecutionException {
+    try {
+      Repository repo = getGitRepository();
+      ObjectId headId = evalCommit.toObjectId();
+      Collection<String> tags = jGitCommon.getTag(repo, headId);
+      return String.join(",", tags);
+    } catch (GitAPIException e) {
+      log.error(String.format("Unable to extract tag from commit: %s", evalCommit.getName()), e);
+      return "";
+    }
+  }
+
+  @Override
   public String getClosestTagName() throws GitCommitIdExecutionException {
     Repository repo = getGitRepository();
     try {

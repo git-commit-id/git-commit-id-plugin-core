@@ -276,6 +276,12 @@ public class NativeGitProvider extends GitDataProvider {
   }
 
   @Override
+  public String getTag() throws GitCommitIdExecutionException {
+    final String result = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "tag --points-at " + evaluateOnCommit);
+    return result.replace('\n', ',');
+  }
+
+  @Override
   public String getRemoteOriginUrl() throws GitCommitIdExecutionException {
     return getOriginRemote(canonical, nativeGitTimeoutInMs);
   }
