@@ -36,7 +36,7 @@
         <jgit.version>6.8.0.202311291450-r</jgit.version>
         <junit.version>4.13.2</junit.version>
         <mockito.version>5.9.0</mockito.version>
-        <assertj.version>3.25.1</assertj.version>
+        <assertj.version>3.25.2</assertj.version>
     </properties>
 
     <dependencyManagement>
