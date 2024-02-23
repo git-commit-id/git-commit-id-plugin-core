@@ -1071,6 +1071,45 @@ public class GitCommitIdPluginIntegrationTest {
 
   @Test
   @Parameters(method = "useNativeGit")
+  public void shouldGenerateCommitterAndAuthorInformation(boolean useNativeGit) throws Exception {
+    // given
+    File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.COMMITTER_DIFFERENT_FROM_AUTHOR);
+
+    GitCommitIdPlugin.Callback cb =
+            new GitCommitIdTestCallback()
+                    .setDotGitDirectory(dotGitDirectory)
+                    .setDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX")
+                    .setDateFormatTimeZone("UTC")
+                    .setUseNativeGit(useNativeGit)
+                    .build();
+    Properties properties = new Properties();
+
+    // when
+    GitCommitIdPlugin.runPlugin(cb, properties);
+
+    // then
+    assertThat(properties)
+            .containsKeys(
+                    "git.commit.time",
+                    "git.commit.committer.time",
+                    "git.commit.author.time",
+                    "git.commit.user.email",
+                    "git.commit.user.name");
+
+    assertThat(properties.getProperty("git.commit.committer.time")).isNotEqualTo(properties.getProperty("git.commit.author.time"));
+
+    // Committer
+    assertPropertyPresentAndEqual(properties, "git.commit.committer.time", "2014-09-19T15:23:04Z");
+    assertThat(properties.getProperty("git.commit.committer.time")).isEqualTo(properties.getProperty("git.commit.time"));
+
+    // Author
+    assertPropertyPresentAndEqual(properties, "git.commit.author.time", "2012-07-04T13:54:01Z");
+    assertPropertyPresentAndEqual(properties, "git.commit.user.email", "john.doe@domain.com");
+    assertPropertyPresentAndEqual(properties, "git.commit.user.name", "John Doe");
+  }
+
+  @Test
+  @Parameters(method = "useNativeGit")
   public void shouldUseDateFormatTimeZone(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG_DIRTY);

@@ -68,6 +68,13 @@ public enum AvailableGitTestRepo {
   WITH_TAG_ON_DIFFERENT_BRANCH("src/test/resources/_git_with_tag_on_different_branch"),
   WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS("src/test/resources/_git_one_commit_with_umlaut"),
   /**
+   * <pre>
+   * $ log --date=iso-strict --format='%h | cd=%cd | ad=%ad'
+   * 7002d5c | cd=2014-09-19T17:23:04+02:00 | ad=2012-07-04T15:54:01+02:00
+   * </pre>
+   */
+  COMMITTER_DIFFERENT_FROM_AUTHOR("src/test/resources/_git_one_commit_with_umlaut"),
+  /**
     * <pre>
     * b0c6d28b3b83bf7b905321bae67d9ca4c75a203f 2015-06-04 00:50:18 +0200  (HEAD, master)
     * 0e3495783c56589213ee5f2ae8900e2dc1b776c4 2015-06-03 23:59:10 +0200  (tag: v2.0)
