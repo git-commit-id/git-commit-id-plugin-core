@@ -25,12 +25,11 @@ import pl.project13.core.log.LogInterface;
 import javax.annotation.Nonnull;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -338,7 +337,7 @@ public class NativeGitProvider extends GitDataProvider {
   }
 
   /**
-   * Runs a maven command and returns {@code true} if output was non empty.
+   * Runs a Git command and returns {@code true} if output was non empty.
    * Can be used to short cut reading output from command when we know it may be a rather long one.
    * Return true if the result is empty.
    **/
@@ -468,12 +467,10 @@ public class NativeGitProvider extends GitDataProvider {
       try {
         final StringBuilder commandResult = new StringBuilder();
 
-        final Function<String, Boolean> stdoutConsumer = line -> {
+        final Consumer<String> stdoutConsumer = line -> {
           if (line != null) {
-            commandResult.append(line).append("\n");
+            commandResult.append(line).append('\n');
           }
-          // return true to indicate we want to read more content
-          return true;
         };
         runProcess(directory, nativeGitTimeoutInMs, command, stdoutConsumer);
 
@@ -489,12 +486,9 @@ public class NativeGitProvider extends GitDataProvider {
       final AtomicBoolean empty = new AtomicBoolean(true);
 
       try {
-        final Function<String, Boolean> stdoutConsumer = line -> {
-          if (line != null) {
-            empty.set(false);
-          }
-          // return false to indicate we don't need to read more content
-          return false;
+        final Consumer<String> stdoutConsumer = line -> {
+          empty.set(false);
+          // Ignore the content of the line
         };
         runProcess(directory, nativeGitTimeoutInMs, command, stdoutConsumer);
       } catch (final InterruptedException ex) {
@@ -507,75 +501,22 @@ public class NativeGitProvider extends GitDataProvider {
             File directory,
             long nativeGitTimeoutInMs,
             String command,
-            final Function<String, Boolean> stdoutConsumer) throws InterruptedException, IOException, GitCommitIdExecutionException {
+            final Consumer<String> stdoutLineConsumer) throws InterruptedException, IOException, GitCommitIdExecutionException {
 
       final ProcessBuilder builder = new ProcessBuilder(command.split("\\s"));
       final Process proc = builder.directory(directory).start();
 
-      final ExecutorService executorService = Executors.newFixedThreadPool(2);
-      final StringBuilder errMsg = new StringBuilder();
+      try (ProcessHandler processHandler = new ProcessHandler(proc, stdoutLineConsumer)) {
+        int exitValue = processHandler.exitValue(nativeGitTimeoutInMs, TimeUnit.MILLISECONDS);
 
-      final Future<Optional<RuntimeException>> stdoutFuture = executorService.submit(
-              new CallableBufferedStreamReader(proc.getInputStream(), stdoutConsumer));
-      final Future<Optional<RuntimeException>> stderrFuture = executorService.submit(
-              new CallableBufferedStreamReader(proc.getErrorStream(),
-                  line -> {
-                    errMsg.append(line);
-                    // return true to indicate we want to read more content
-                    return true;
-                  }));
-
-      if (!proc.waitFor(nativeGitTimeoutInMs, TimeUnit.MILLISECONDS)) {
-        proc.destroy();
-        executorService.shutdownNow();
-        throw new RuntimeException(String.format("GIT-Command '%s' did not finish in %d milliseconds", command, nativeGitTimeoutInMs));
-      }
-
-      try {
-        stdoutFuture.get()
-            .ifPresent(e -> {
-              throw e;
-            });
-        stderrFuture.get()
-            .ifPresent(e -> {
-              throw e;
-            });
-      } catch (final ExecutionException e) {
-        throw new RuntimeException(String.format("Executing GIT-Command '%s' threw an '%s' exception.", command, e.getMessage()), e);
-      }
-
-      executorService.shutdown();
-      if (proc.exitValue() != 0) {
-        throw new NativeCommandException(proc.exitValue(), command, directory, "", errMsg.toString());
-      }
-    }
-
-    private static class CallableBufferedStreamReader implements Callable<Optional<RuntimeException>> {
-      private final InputStream is;
-      private final Function<String, Boolean> streamConsumer;
-
-      CallableBufferedStreamReader(final InputStream is, final Function<String, Boolean> streamConsumer) {
-        this.is = is;
-        this.streamConsumer = streamConsumer;
-      }
-
-      @Override
-      public Optional<RuntimeException> call() {
-        RuntimeException thrownException = null;
-        try (final BufferedReader br = new BufferedReader(
-                new InputStreamReader(is, StandardCharsets.UTF_8))) {
-          for (String line = br.readLine();
-               line != null;
-               line = br.readLine()) {
-            if (!streamConsumer.apply(line)) {
-              break;
-            }
-          }
-        } catch (final IOException e) {
-          thrownException = new RuntimeException(String.format("Executing GIT-Command threw an '%s' exception.", e.getMessage()), e);
+        if (exitValue != 0) {
+          throw new NativeCommandException(exitValue, command, directory, "", processHandler.getStderr());
         }
 
-        return Optional.ofNullable(thrownException);
+      } catch (TimeoutException e) {
+        throw new RuntimeException(String.format("GIT-Command '%s' did not finish in %d milliseconds", command, nativeGitTimeoutInMs), e);
+      } catch (ExecutionException e) {
+        throw new RuntimeException(String.format("Executing GIT-Command '%s' threw an '%s' exception.", command, e.getMessage()), e);
       }
     }
   }
