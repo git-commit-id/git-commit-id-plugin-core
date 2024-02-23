@@ -286,9 +286,9 @@ public abstract class GitDataProvider implements GitProvider {
       maybePut(properties, GitCommitPropertyConstant.COMMIT_ID_ABBREV, this::getAbbrevCommitId);
       // git.dirty
       maybePut(properties, GitCommitPropertyConstant.DIRTY, () -> Boolean.toString(isDirty()));
-      // git.commit.author.name
+      // git.commit.user.name
       maybePut(properties, GitCommitPropertyConstant.COMMIT_AUTHOR_NAME, this::getCommitAuthorName);
-      // git.commit.author.email
+      // git.commit.user.email
       maybePut(properties, GitCommitPropertyConstant.COMMIT_AUTHOR_EMAIL, this::getCommitAuthorEmail);
       // git.commit.message.full
       maybePut(properties, GitCommitPropertyConstant.COMMIT_MESSAGE_FULL, this::getCommitMessageFull);
@@ -299,7 +299,7 @@ public abstract class GitDataProvider implements GitProvider {
       // commit.author.time
       maybePut(properties, GitCommitPropertyConstant.COMMIT_AUTHOR_TIME, this::getCommitAuthorTime);
       // commit.committer.time
-      maybePut(properties, GitCommitPropertyConstant.COMMIT_COMMITTER_TIME, this::getCommitAuthorTime);
+      maybePut(properties, GitCommitPropertyConstant.COMMIT_COMMITTER_TIME, this::getCommitCommitterTime);
       // git remote.origin.url
       maybePut(properties, GitCommitPropertyConstant.REMOTE_ORIGIN_URL, this::getRemoteOriginUrl);
 

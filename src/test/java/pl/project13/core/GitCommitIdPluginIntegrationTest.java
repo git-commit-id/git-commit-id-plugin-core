@@ -26,14 +26,10 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.util.GenericFileManager;
-import pl.project13.core.util.JsonManager;
-import pl.project13.core.util.XmlManager;
-import pl.project13.core.util.YmlManager;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -1059,6 +1055,45 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.closest.tag.name", "newest-tag");
 
     assertPropertyPresentAndEqual(properties, "git.closest.tag.commit.count", "0");
+  }
+
+  @Test
+  @Parameters(method = "useNativeGit")
+  public void shouldGenerateCommitterAndAuthorInformation(boolean useNativeGit) throws Exception {
+    // given
+    File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.COMMITTER_DIFFERENT_FROM_AUTHOR);
+
+    GitCommitIdPlugin.Callback cb =
+            new GitCommitIdTestCallback()
+                    .setDotGitDirectory(dotGitDirectory)
+                    .setDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX")
+                    .setDateFormatTimeZone("UTC")
+                    .setUseNativeGit(useNativeGit)
+                    .build();
+    Properties properties = new Properties();
+
+    // when
+    GitCommitIdPlugin.runPlugin(cb, properties);
+
+    // then
+    assertThat(properties)
+            .containsKeys(
+                    "git.commit.time",
+                    "git.commit.committer.time",
+                    "git.commit.author.time",
+                    "git.commit.user.email",
+                    "git.commit.user.name");
+
+    assertThat(properties.getProperty("git.commit.committer.time")).isNotEqualTo(properties.getProperty("git.commit.author.time"));
+
+    // Committer
+    assertPropertyPresentAndEqual(properties, "git.commit.committer.time", "2014-09-19T15:23:04Z");
+    assertThat(properties.getProperty("git.commit.committer.time")).isEqualTo(properties.getProperty("git.commit.time"));
+
+    // Author
+    assertPropertyPresentAndEqual(properties, "git.commit.author.time", "2012-07-04T13:54:01Z");
+    assertPropertyPresentAndEqual(properties, "git.commit.user.email", "john.doe@domain.com");
+    assertPropertyPresentAndEqual(properties, "git.commit.user.name", "John Doe");
   }
 
   @Test
