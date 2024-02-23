@@ -85,7 +85,7 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).containsKeys(
         "git.branch",
         "git.dirty",
-        "git.commit.id.full",
+        "git.commit.id",
         "git.commit.id.abbrev",
         "git.build.user.name",
         "git.build.user.email",
@@ -131,7 +131,7 @@ public class GitCommitIdPluginIntegrationTest {
     // these stay
     assertThat(properties).containsKeys(
         "git.branch",
-        "git.commit.id.full",
+        "git.commit.id",
         "git.commit.id.abbrev",
         "git.commit.message.full",
         "git.commit.message.short",
@@ -149,7 +149,7 @@ public class GitCommitIdPluginIntegrationTest {
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(dotGitDirectory)
                     .setUseNativeGit(useNativeGit)
-                    .setIncludeOnlyProperties(Arrays.asList("git.remote.origin.url", ".*.user.*", "^git.commit.id.full$"))
+                    .setIncludeOnlyProperties(Arrays.asList("git.remote.origin.url", ".*.user.*", "^git.commit.id$"))
                     .build();
     Properties properties = new Properties();
 
@@ -163,7 +163,7 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).containsKeys(
         "git.build.user.name",
         "git.build.user.email",
-        "git.commit.id.full",
+        "git.commit.id",
         "git.commit.user.name",
         "git.commit.user.email"
     );
@@ -214,7 +214,7 @@ public class GitCommitIdPluginIntegrationTest {
     // these excluded
     assertThat(properties).doesNotContainKeys(
         "git.branch",
-        "git.commit.id.full",
+        "git.commit.id",
         "git.commit.id.abbrev",
         "git.commit.message.full",
         "git.commit.message.short",
@@ -1578,7 +1578,7 @@ public class GitCommitIdPluginIntegrationTest {
         "git.build.time",
         "git.build.host",
         "git.branch",
-        "git.commit.id.full",
+        "git.commit.id",
         "git.commit.id.abbrev",
         "git.commit.id.describe",
         "git.build.user.name",
