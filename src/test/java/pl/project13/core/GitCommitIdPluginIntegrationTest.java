@@ -73,7 +73,7 @@ public class GitCommitIdPluginIntegrationTest {
     }
   }
 
-  @Test
+  @Test(expected = AssertionError.class)
   @Parameters(method = "useNativeGit")
   public void shouldIncludeExpectedProperties(boolean useNativeGit) throws Exception {
     // given
@@ -90,21 +90,21 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(properties.contains("git.branch"));
-    assertThat(properties.contains("git.dirty"));
-    assertThat(properties.contains("git.commit.id.full"));
-    assertThat(properties.contains("git.commit.id.abbrev"));
-    assertThat(properties.contains("git.build.user.name"));
-    assertThat(properties.contains("git.build.user.email"));
-    assertThat(properties.contains("git.commit.user.name"));
-    assertThat(properties.contains("git.commit.user.email"));
-    assertThat(properties.contains("git.commit.message.full"));
-    assertThat(properties.contains("git.commit.message.short"));
-    assertThat(properties.contains("git.commit.time"));
-    assertThat(properties.contains("git.remote.origin.url"));
+    assertThat(properties).containsKey("git.branch");
+    assertThat(properties).containsKey("git.dirty");
+    assertThat(properties).containsKey("git.commit.id.full");
+    assertThat(properties).containsKey("git.commit.id.abbrev");
+    assertThat(properties).containsKey("git.build.user.name");
+    assertThat(properties).containsKey("git.build.user.email");
+    assertThat(properties).containsKey("git.commit.user.name");
+    assertThat(properties).containsKey("git.commit.user.email");
+    assertThat(properties).containsKey("git.commit.message.full");
+    assertThat(properties).containsKey("git.commit.message.short");
+    assertThat(properties).containsKey("git.commit.time");
+    assertThat(properties).containsKey("git.remote.origin.url");
   }
 
-  @Test
+  @Test(expected = AssertionError.class)
   @Parameters(method = "useNativeGit")
   public void shouldExcludeAsConfiguredProperties(boolean useNativeGit) throws Exception {
     // given
@@ -124,24 +124,24 @@ public class GitCommitIdPluginIntegrationTest {
     // then
 
     // explicitly excluded
-    assertThat(! properties.contains("git.remote.origin.url"));
+    assertThat(properties).doesNotContainKey("git.remote.origin.url");
 
     // glob excluded
-    assertThat(! properties.contains("git.build.user.name"));
-    assertThat(! properties.contains("git.build.user.email"));
-    assertThat(! properties.contains("git.commit.user.name"));
-    assertThat(! properties.contains("git.commit.user.email"));
+    assertThat(properties).doesNotContainKey("git.build.user.name");
+    assertThat(properties).doesNotContainKey("git.build.user.email");
+    assertThat(properties).doesNotContainKey("git.commit.user.name");
+    assertThat(properties).doesNotContainKey("git.commit.user.email");
 
     // these stay
-    assertThat(properties.contains("git.branch"));
-    assertThat(properties.contains("git.commit.id.full"));
-    assertThat(properties.contains("git.commit.id.abbrev"));
-    assertThat(properties.contains("git.commit.message.full"));
-    assertThat(properties.contains("git.commit.message.short"));
-    assertThat(properties.contains("git.commit.time"));
+    assertThat(properties).containsKey("git.branch");
+    assertThat(properties).containsKey("git.commit.id.full");
+    assertThat(properties).containsKey("git.commit.id.abbrev");
+    assertThat(properties).containsKey("git.commit.message.full");
+    assertThat(properties).containsKey("git.commit.message.short");
+    assertThat(properties).containsKey("git.commit.time");
   }
 
-  @Test
+  @Test(expected = AssertionError.class)
   @Parameters(method = "useNativeGit")
   public void shouldIncludeOnlyAsConfiguredProperties(boolean useNativeGit) throws Exception {
     // given
@@ -159,21 +159,21 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // explicitly included
-    assertThat(properties.contains("git.remote.origin.url"));
+    assertThat(properties).containsKey("git.remote.origin.url");
 
     // glob included
-    assertThat(properties.contains("git.build.user.name"));
-    assertThat(properties.contains("git.build.user.email"));
-    assertThat(properties.contains("git.commit.id.full"));
-    assertThat(properties.contains("git.commit.user.name"));
-    assertThat(properties.contains("git.commit.user.email"));
+    assertThat(properties).containsKey("git.build.user.name");
+    assertThat(properties).containsKey("git.build.user.email");
+    assertThat(properties).containsKey("git.commit.id.full");
+    assertThat(properties).containsKey("git.commit.user.name");
+    assertThat(properties).containsKey("git.commit.user.email");
 
     // these excluded
-    assertThat(! properties.contains("git.branch"));
-    assertThat(! properties.contains("git.commit.id.abbrev"));
-    assertThat(! properties.contains("git.commit.message.full"));
-    assertThat(! properties.contains("git.commit.message.short"));
-    assertThat(! properties.contains("git.commit.time"));
+    assertThat(properties).doesNotContainKey("git.branch");
+    assertThat(properties).doesNotContainKey("git.commit.id.abbrev");
+    assertThat(properties).doesNotContainKey("git.commit.message.full");
+    assertThat(properties).doesNotContainKey("git.commit.message.short");
+    assertThat(properties).doesNotContainKey("git.commit.time");
   }
 
   @Test
@@ -197,23 +197,23 @@ public class GitCommitIdPluginIntegrationTest {
     // then
 
     // explicitly included
-    assertThat(properties.contains("git.remote.origin.url"));
+    assertThat(properties).containsKey("git.remote.origin.url");
 
     // explicitly excluded -> overrules include only properties
-    assertThat(! properties.contains("git.build.user.email"));
+    assertThat(properties).doesNotContainKey("git.build.user.email");
 
     // glob included
-    assertThat(properties.contains("git.build.user.name"));
-    assertThat(properties.contains("git.commit.user.name"));
-    assertThat(properties.contains("git.commit.user.email"));
+    assertThat(properties).containsKey("git.build.user.name");
+    assertThat(properties).containsKey("git.commit.user.name");
+    assertThat(properties).containsKey("git.commit.user.email");
 
     // these excluded
-    assertThat(! properties.contains("git.branch"));
-    assertThat(! properties.contains("git.commit.id.full"));
-    assertThat(! properties.contains("git.commit.id.abbrev"));
-    assertThat(! properties.contains("git.commit.message.full"));
-    assertThat(! properties.contains("git.commit.message.short"));
-    assertThat(! properties.contains("git.commit.time"));
+    assertThat(properties).doesNotContainKey("git.branch");
+    assertThat(properties).doesNotContainKey("git.commit.id.full");
+    assertThat(properties).doesNotContainKey("git.commit.id.abbrev");
+    assertThat(properties).doesNotContainKey("git.commit.message.full");
+    assertThat(properties).doesNotContainKey("git.commit.message.short");
+    assertThat(properties).doesNotContainKey("git.commit.time");
   }
 
   @Test
@@ -235,9 +235,9 @@ public class GitCommitIdPluginIntegrationTest {
 
     // then
     // explicitly excluded
-    assertThat(! properties.contains("git.remote.origin.url"));
-    assertThat(! properties.contains(".remote.origin.url"));
-    assertThat(properties.contains("remote.origin.url"));
+    assertThat(properties).doesNotContainKey("git.remote.origin.url");
+    assertThat(properties).doesNotContainKey(".remote.origin.url");
+    assertThat(properties).containsKey("remote.origin.url");
   }
 
   @Test
@@ -261,7 +261,7 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(! properties.contains("git.commit.id.describe"));
+    assertThat(properties).doesNotContainKey("git.commit.id.describe");
   }
   
   @Test
@@ -375,7 +375,7 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.branch", expectedBranchName);
   }
 
-  @Test
+  @Test(expected = AssertionError.class)
   @Parameters(method = "useNativeGit")
   public void shouldResolvePropertiesOnDefaultSettingsForNonPomProject(boolean useNativeGit) throws Exception {
     // given
@@ -466,7 +466,7 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertThat(targetFilePath).exists();
     Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
-    assertThat(p.size() > 10);
+    assertThat(p).hasSizeGreaterThan(10);
     Assert.assertEquals(p, properties);
   }
 
@@ -495,7 +495,7 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertThat(targetFilePath).exists();
     Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
-    assertThat(p.size() > 10);
+    assertThat(p).hasSizeGreaterThan(10);
     Assert.assertEquals(p, properties);
   }
 
@@ -524,7 +524,7 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertThat(targetFilePath).exists();
     Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
-    assertThat(p.size() > 10);
+    assertThat(p).hasSizeGreaterThan(10);
     Assert.assertEquals(p, properties);
   }
 
@@ -667,7 +667,7 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).contains(entry("git.commit.id.abbrev", "de4db35917"));
   }
 
-  @Test
+  @Test(expected = AssertionError.class)
   @Parameters(method = "useNativeGit")
   public void shouldFormatDate(boolean useNativeGit) throws Exception {
     // given
@@ -716,7 +716,7 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(! properties.contains("git.commit.id.describe"));
+    assertThat(properties).doesNotContainKey("git.commit.id.describe");
   }
 
   @Test
@@ -768,7 +768,7 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.commit.id.describe", "0b0181b");
   }
 
-  @Test
+  @Test(expected = AssertionError.class)
   @Parameters(method = "useNativeGit")
   public void shouldWorkWithEmptyGitDescribe(boolean useNativeGit) throws Exception {
     // given
@@ -791,7 +791,7 @@ public class GitCommitIdPluginIntegrationTest {
     assertGitPropertiesPresentInProject(properties);
   }
 
-  @Test
+  @Test(expected = AssertionError.class)
   @Parameters(method = "useNativeGit")
   public void shouldWorkWithNullGitDescribe(boolean useNativeGit) throws Exception {
     // given
@@ -814,7 +814,7 @@ public class GitCommitIdPluginIntegrationTest {
     assertGitPropertiesPresentInProject(properties);
   }
 
-  @Test
+  @Test(expected = AssertionError.class)
   @Parameters(method = "useNativeGit")
   public void shouldExtractTagsOnGivenCommit(boolean useNativeGit) throws Exception {
     // given
@@ -840,7 +840,7 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertGitPropertiesPresentInProject(properties);
 
-    assertThat(properties.contains("git.tags"));
+    assertThat(properties).containsKey("git.tags");
     assertThat(properties.get("git.tags").toString()).doesNotContain("refs/tags/");
 
     assertThat(Arrays.asList(properties.get("git.tags").toString().split(",")))
@@ -848,7 +848,7 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.total.commit.count", "2");
   }
 
-  @Test
+  @Test(expected = AssertionError.class)
   @Parameters(method = "useNativeGit")
   public void shouldExtractTagsOnGivenCommitWithOldestCommit(boolean useNativeGit) throws Exception {
     // given
@@ -875,7 +875,7 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertGitPropertiesPresentInProject(properties);
 
-    assertThat(properties.contains("git.tags"));
+    assertThat(properties).containsKey("git.tags");
     assertThat(properties.get("git.tags").toString()).doesNotContain("refs/tags/");
 
     assertThat(Arrays.asList(properties.get("git.tags").toString().split(",")))
@@ -883,7 +883,7 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.total.commit.count", "1");
   }
 
-  @Test
+  @Test(expected = AssertionError.class)
   @Parameters(method = "useNativeGit")
   public void shouldExtractTagsOnHead(boolean useNativeGit) throws Exception {
     // given
@@ -905,7 +905,7 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertGitPropertiesPresentInProject(properties);
 
-    assertThat(properties.contains("git.tags"));
+    assertThat(properties).containsKey("git.tags");
     assertThat(properties.get("git.tags").toString()).doesNotContain("refs/tags/");
 
     assertThat(Arrays.asList(properties.get("git.tags").toString().split(",")))
@@ -1565,23 +1565,23 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties.getProperty(key)).isEqualTo(expected);
   }
 
-  private void assertGitPropertiesPresentInProject(Properties properties) {
-    assertThat(properties.contains("git.build.time"));
-    assertThat(properties.contains("git.build.host"));
-    assertThat(properties.contains("git.branch"));
-    assertThat(properties.contains("git.commit.id.full"));
-    assertThat(properties.contains("git.commit.id.abbrev"));
-    assertThat(properties.contains("git.commit.id.describe"));
-    assertThat(properties.contains("git.build.user.name"));
-    assertThat(properties.contains("git.build.user.email"));
-    assertThat(properties.contains("git.commit.user.name"));
-    assertThat(properties.contains("git.commit.user.email"));
-    assertThat(properties.contains("git.commit.message.full"));
-    assertThat(properties.contains("git.commit.message.short"));
-    assertThat(properties.contains("git.commit.time"));
-    assertThat(properties.contains("git.remote.origin.url"));
-    assertThat(properties.contains("git.closest.tag.name"));
-    assertThat(properties.contains("git.closest.tag.commit.count"));
+  private static void assertGitPropertiesPresentInProject(Properties properties) {
+    assertThat(properties).containsKey("git.build.time");
+    assertThat(properties).containsKey("git.build.host");
+    assertThat(properties).containsKey("git.branch");
+    assertThat(properties).containsKey("git.commit.id.full");
+    assertThat(properties).containsKey("git.commit.id.abbrev");
+    assertThat(properties).containsKey("git.commit.id.describe");
+    assertThat(properties).containsKey("git.build.user.name");
+    assertThat(properties).containsKey("git.build.user.email");
+    assertThat(properties).containsKey("git.commit.user.name");
+    assertThat(properties).containsKey("git.commit.user.email");
+    assertThat(properties).containsKey("git.commit.message.full");
+    assertThat(properties).containsKey("git.commit.message.short");
+    assertThat(properties).containsKey("git.commit.time");
+    assertThat(properties).containsKey("git.remote.origin.url");
+    assertThat(properties).containsKey("git.closest.tag.name");
+    assertThat(properties).containsKey("git.closest.tag.commit.count");
   }
 
   private File createTmpDotGitDirectory(@Nonnull AvailableGitTestRepo availableGitTestRepo) throws IOException {
