@@ -26,14 +26,10 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.util.GenericFileManager;
-import pl.project13.core.util.JsonManager;
-import pl.project13.core.util.XmlManager;
-import pl.project13.core.util.YmlManager;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -42,17 +38,13 @@ import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(JUnitParamsRunner.class)
 public class GitCommitIdPluginIntegrationTest {
-  private static final boolean UseJGit = false;
-  private static final boolean UseNativeGit = true;
-
   public static Collection<?> useNativeGit() {
-    return asList(UseJGit, UseNativeGit);
+    return asList(true, false);
   }
 
   public static Collection<?> useDirty() {
@@ -90,18 +82,20 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(properties.contains("git.branch"));
-    assertThat(properties.contains("git.dirty"));
-    assertThat(properties.contains("git.commit.id.full"));
-    assertThat(properties.contains("git.commit.id.abbrev"));
-    assertThat(properties.contains("git.build.user.name"));
-    assertThat(properties.contains("git.build.user.email"));
-    assertThat(properties.contains("git.commit.user.name"));
-    assertThat(properties.contains("git.commit.user.email"));
-    assertThat(properties.contains("git.commit.message.full"));
-    assertThat(properties.contains("git.commit.message.short"));
-    assertThat(properties.contains("git.commit.time"));
-    assertThat(properties.contains("git.remote.origin.url"));
+    assertThat(properties).containsKeys(
+        "git.branch",
+        "git.dirty",
+        "git.commit.id",
+        "git.commit.id.abbrev",
+        "git.build.user.name",
+        "git.build.user.email",
+        "git.commit.user.name",
+        "git.commit.user.email",
+        "git.commit.message.full",
+        "git.commit.message.short",
+        "git.commit.time",
+        "git.remote.origin.url"
+    );
   }
 
   @Test
@@ -124,21 +118,25 @@ public class GitCommitIdPluginIntegrationTest {
     // then
 
     // explicitly excluded
-    assertThat(! properties.contains("git.remote.origin.url"));
+    assertThat(properties).doesNotContainKey("git.remote.origin.url");
 
     // glob excluded
-    assertThat(! properties.contains("git.build.user.name"));
-    assertThat(! properties.contains("git.build.user.email"));
-    assertThat(! properties.contains("git.commit.user.name"));
-    assertThat(! properties.contains("git.commit.user.email"));
+    assertThat(properties).doesNotContainKeys(
+        "git.build.user.name",
+        "git.build.user.email",
+        "git.commit.user.name",
+        "git.commit.user.email"
+    );
 
     // these stay
-    assertThat(properties.contains("git.branch"));
-    assertThat(properties.contains("git.commit.id.full"));
-    assertThat(properties.contains("git.commit.id.abbrev"));
-    assertThat(properties.contains("git.commit.message.full"));
-    assertThat(properties.contains("git.commit.message.short"));
-    assertThat(properties.contains("git.commit.time"));
+    assertThat(properties).containsKeys(
+        "git.branch",
+        "git.commit.id",
+        "git.commit.id.abbrev",
+        "git.commit.message.full",
+        "git.commit.message.short",
+        "git.commit.time"
+    );
   }
 
   @Test
@@ -146,12 +144,12 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldIncludeOnlyAsConfiguredProperties(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
-    
+
     GitCommitIdPlugin.Callback cb =
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(dotGitDirectory)
                     .setUseNativeGit(useNativeGit)
-                    .setIncludeOnlyProperties(Arrays.asList("git.remote.origin.url", ".*.user.*", "^git.commit.id.full$"))
+                    .setIncludeOnlyProperties(Arrays.asList("git.remote.origin.url", ".*.user.*", "^git.commit.id$"))
                     .build();
     Properties properties = new Properties();
 
@@ -159,21 +157,25 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // explicitly included
-    assertThat(properties.contains("git.remote.origin.url"));
+    assertThat(properties).containsKey("git.remote.origin.url");
 
     // glob included
-    assertThat(properties.contains("git.build.user.name"));
-    assertThat(properties.contains("git.build.user.email"));
-    assertThat(properties.contains("git.commit.id.full"));
-    assertThat(properties.contains("git.commit.user.name"));
-    assertThat(properties.contains("git.commit.user.email"));
+    assertThat(properties).containsKeys(
+        "git.build.user.name",
+        "git.build.user.email",
+        "git.commit.id",
+        "git.commit.user.name",
+        "git.commit.user.email"
+    );
 
     // these excluded
-    assertThat(! properties.contains("git.branch"));
-    assertThat(! properties.contains("git.commit.id.abbrev"));
-    assertThat(! properties.contains("git.commit.message.full"));
-    assertThat(! properties.contains("git.commit.message.short"));
-    assertThat(! properties.contains("git.commit.time"));
+    assertThat(properties).doesNotContainKeys(
+        "git.branch",
+        "git.commit.id.abbrev",
+        "git.commit.message.full",
+        "git.commit.message.short",
+        "git.commit.time"
+    );
   }
 
   @Test
@@ -181,7 +183,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldExcludeAndIncludeAsConfiguredProperties(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
-    
+
     GitCommitIdPlugin.Callback cb =
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(dotGitDirectory)
@@ -197,23 +199,27 @@ public class GitCommitIdPluginIntegrationTest {
     // then
 
     // explicitly included
-    assertThat(properties.contains("git.remote.origin.url"));
+    assertThat(properties).containsKey("git.remote.origin.url");
 
     // explicitly excluded -> overrules include only properties
-    assertThat(! properties.contains("git.build.user.email"));
+    assertThat(properties).doesNotContainKey("git.build.user.email");
 
     // glob included
-    assertThat(properties.contains("git.build.user.name"));
-    assertThat(properties.contains("git.commit.user.name"));
-    assertThat(properties.contains("git.commit.user.email"));
+    assertThat(properties).containsKeys(
+        "git.build.user.name",
+        "git.commit.user.name",
+        "git.commit.user.email"
+    );
 
     // these excluded
-    assertThat(! properties.contains("git.branch"));
-    assertThat(! properties.contains("git.commit.id.full"));
-    assertThat(! properties.contains("git.commit.id.abbrev"));
-    assertThat(! properties.contains("git.commit.message.full"));
-    assertThat(! properties.contains("git.commit.message.short"));
-    assertThat(! properties.contains("git.commit.time"));
+    assertThat(properties).doesNotContainKeys(
+        "git.branch",
+        "git.commit.id",
+        "git.commit.id.abbrev",
+        "git.commit.message.full",
+        "git.commit.message.short",
+        "git.commit.time"
+    );
   }
 
   @Test
@@ -221,7 +227,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldHaveNoPrefixWhenConfiguredPrefixIsEmptyStringAsConfiguredProperties(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
-    
+
     GitCommitIdPlugin.Callback cb =
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(dotGitDirectory)
@@ -235,9 +241,11 @@ public class GitCommitIdPluginIntegrationTest {
 
     // then
     // explicitly excluded
-    assertThat(! properties.contains("git.remote.origin.url"));
-    assertThat(! properties.contains(".remote.origin.url"));
-    assertThat(properties.contains("remote.origin.url"));
+    assertThat(properties).doesNotContainKeys(
+        "git.remote.origin.url",
+        ".remote.origin.url"
+    );
+    assertThat(properties).containsKey("remote.origin.url");
   }
 
   @Test
@@ -245,7 +253,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldSkipDescribeWhenConfiguredToDoSo(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
-    
+
     GitDescribeConfig config = new GitDescribeConfig();
     config.setSkip(true);
 
@@ -261,9 +269,9 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(! properties.contains("git.commit.id.describe"));
+    assertThat(properties).doesNotContainKey("git.commit.id.describe");
   }
-  
+
   @Test
   @Parameters(method = "useNativeGit")
   public void shouldNotUseBuildEnvironmentBranchInfoWhenParameterSet(boolean useNativeGit) throws Exception {
@@ -380,7 +388,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldResolvePropertiesOnDefaultSettingsForNonPomProject(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
-    
+
     GitCommitIdPlugin.Callback cb =
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(dotGitDirectory)
@@ -447,7 +455,7 @@ public class GitCommitIdPluginIntegrationTest {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
     CommitIdPropertiesOutputFormat commitIdPropertiesOutputFormat = CommitIdPropertiesOutputFormat.JSON;
-    
+
     File targetFilePath = sandbox.resolve("custom-git.json").toFile();
     targetFilePath.delete();
 
@@ -466,7 +474,7 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertThat(targetFilePath).exists();
     Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
-    assertThat(p.size() > 10);
+    assertThat(p.size()).isGreaterThan(10);
     Assert.assertEquals(p, properties);
   }
 
@@ -495,7 +503,7 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertThat(targetFilePath).exists();
     Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
-    assertThat(p.size() > 10);
+    assertThat(p.size()).isGreaterThan(10);
     Assert.assertEquals(p, properties);
   }
 
@@ -524,7 +532,7 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertThat(targetFilePath).exists();
     Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
-    assertThat(p.size() > 10);
+    assertThat(p.size()).isGreaterThan(10);
     Assert.assertEquals(p, properties);
   }
 
@@ -533,7 +541,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateDescribeWithTagOnlyWhenForceLongFormatIsFalse(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(false, 7);
     gitDescribeConfig.setDirty("-dirty"); // checking if dirty works as expected
 
@@ -557,7 +565,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateDescribeWithTagOnlyWhenForceLongFormatIsFalseAndAbbrevLengthIsNonDefault(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(false, 10);
 
     GitCommitIdPlugin.Callback cb =
@@ -582,7 +590,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateDescribeWithTagAndZeroAndCommitIdWhenForceLongFormatIsTrue(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 7);
 
     GitCommitIdPlugin.Callback cb =
@@ -605,7 +613,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateDescribeWithTagAndZeroAndCommitIdWhenForceLongFormatIsTrueAndAbbrevLengthIsNonDefault(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 10);
 
     GitCommitIdPlugin.Callback cb =
@@ -630,7 +638,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateCommitIdAbbrevWithDefaultLength(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
-    
+
     GitCommitIdPlugin.Callback cb =
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(dotGitDirectory)
@@ -651,7 +659,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateCommitIdAbbrevWithNonDefaultLength(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
-    
+
     GitCommitIdPlugin.Callback cb =
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(dotGitDirectory)
@@ -664,7 +672,7 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(properties).contains(entry("git.commit.id.abbrev", "de4db35917"));
+    assertThat(properties).containsEntry("git.commit.id.abbrev", "de4db35917");
   }
 
   @Test
@@ -672,7 +680,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldFormatDate(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
-    
+
     String dateFormat = "MM/dd/yyyy";
 
     GitCommitIdPlugin.Callback cb =
@@ -691,8 +699,8 @@ public class GitCommitIdPluginIntegrationTest {
 
     SimpleDateFormat smf = new SimpleDateFormat(dateFormat);
     String expectedDate = smf.format(new Date());
-    assertThat(properties).contains(entry("git.build.time", expectedDate));
-    assertThat(properties).contains(entry("git.commit.time", "08/19/2012"));
+    assertThat(properties).containsEntry("git.build.time", expectedDate);
+    assertThat(properties).containsEntry("git.commit.time", "08/19/2012");
   }
 
   @Test
@@ -700,7 +708,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldSkipGitDescribe(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 7);
     gitDescribeConfig.setSkip(true);
 
@@ -716,7 +724,7 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(! properties.contains("git.commit.id.describe"));
+    assertThat(properties).doesNotContainKey("git.commit.id.describe");
   }
 
   @Test
@@ -724,7 +732,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldMarkGitDescribeAsDirty(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG_DIRTY);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 7);
     String dirtySuffix = "-dirtyTest";
     gitDescribeConfig.setDirty(dirtySuffix);
@@ -741,7 +749,7 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(properties).contains(entry("git.commit.id.describe", "v1.0.0-0-gde4db35" + dirtySuffix));
+    assertThat(properties).containsEntry("git.commit.id.describe", "v1.0.0-0-gde4db35" + dirtySuffix);
   }
 
   @Test
@@ -749,7 +757,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldAlwaysPrintGitDescribe(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 7);
     gitDescribeConfig.setAlways(true);
 
@@ -773,7 +781,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldWorkWithEmptyGitDescribe(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
-    
+
     GitDescribeConfig gitDescribeConfig = new GitDescribeConfig();
 
     GitCommitIdPlugin.Callback cb =
@@ -840,10 +848,10 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertGitPropertiesPresentInProject(properties);
 
-    assertThat(properties.contains("git.tags"));
-    assertThat(properties.get("git.tags").toString()).doesNotContain("refs/tags/");
+    assertThat(properties).containsKey("git.tags");
+    assertThat(properties.getProperty("git.tags")).doesNotContain("refs/tags/");
 
-    assertThat(Arrays.asList(properties.get("git.tags").toString().split(",")))
+    assertThat(properties.getProperty("git.tags").split(","))
       .containsOnly("lightweight-tag", "newest-tag");
     assertPropertyPresentAndEqual(properties, "git.total.commit.count", "2");
   }
@@ -875,10 +883,10 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertGitPropertiesPresentInProject(properties);
 
-    assertThat(properties.contains("git.tags"));
-    assertThat(properties.get("git.tags").toString()).doesNotContain("refs/tags/");
+    assertThat(properties).containsKey("git.tags");
+    assertThat(properties.getProperty("git.tags")).doesNotContain("refs/tags/");
 
-    assertThat(Arrays.asList(properties.get("git.tags").toString().split(",")))
+    assertThat(properties.getProperty("git.tags").split(","))
       .containsOnly("annotated-tag", "lightweight-tag", "newest-tag");
     assertPropertyPresentAndEqual(properties, "git.total.commit.count", "1");
   }
@@ -905,10 +913,10 @@ public class GitCommitIdPluginIntegrationTest {
     // then
     assertGitPropertiesPresentInProject(properties);
 
-    assertThat(properties.contains("git.tags"));
-    assertThat(properties.get("git.tags").toString()).doesNotContain("refs/tags/");
+    assertThat(properties).containsKey("git.tags");
+    assertThat(properties.getProperty("git.tags")).doesNotContain("refs/tags/");
 
-    assertThat(Arrays.asList(properties.get("git.tags").toString().split(",")))
+    assertThat(properties.getProperty("git.tags").split(","))
       .containsOnly("v1.0.0");
   }
 
@@ -930,7 +938,7 @@ public class GitCommitIdPluginIntegrationTest {
       gitDescribeConfig.setAlways(false);
 
       File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_THREE_COMMITS_AND_TWO_TAGS_CURRENTLY_ON_COMMIT_WITHOUT_TAG);
-      
+
       GitCommitIdPlugin.Callback cb =
               new GitCommitIdTestCallback()
                       .setDotGitDirectory(dotGitDirectory)
@@ -944,12 +952,12 @@ public class GitCommitIdPluginIntegrationTest {
       GitCommitIdPlugin.runPlugin(cb, properties);
 
       // then
-      assertThat(properties.stringPropertyNames()).contains("git.commit.id.describe");
+      assertThat(properties).containsKey("git.commit.id.describe");
       assertThat(properties.getProperty("git.commit.id.describe")).startsWith(gitDescribeMatchNeedle);
 
-      assertThat(properties.stringPropertyNames()).contains("git.commit.id.full");
-      assertThat(properties.get("git.commit.id.full")).isNotEqualTo(commitIdOfMatchNeedle);
-      assertThat(properties.get("git.commit.id.full")).isEqualTo(headCommitId);
+      assertThat(properties).containsKey("git.commit.id.full");
+      assertThat(properties.getProperty("git.commit.id.full")).isNotEqualTo(commitIdOfMatchNeedle);
+      assertThat(properties.getProperty("git.commit.id.full")).isEqualTo(headCommitId);
       assertPropertyPresentAndEqual(properties, "git.total.commit.count", "3");
     }
   }
@@ -959,7 +967,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateClosestTagInformationWhenOnATag(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(false, 7);
     gitDescribeConfig.setDirty("-dirty"); // checking if dirty works as expected
 
@@ -1009,7 +1017,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateClosestTagInformationWhenOnATagAndDirty(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG_DIRTY);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 7);
     String dirtySuffix = "-dirtyTest";
     gitDescribeConfig.setDirty(dirtySuffix);
@@ -1066,7 +1074,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldUseDateFormatTimeZone(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG_DIRTY);
-    
+
     // RFC 822 time zone: Sign TwoDigitHours Minutes
     String dateFormat = "Z"; // we want only the timezone (formated in RFC 822) out of the dateformat (easier for asserts)
     String expectedTimeZoneOffset = "+0200";
@@ -1107,7 +1115,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateCommitIdOldFashioned(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG_DIRTY);
-    
+
     GitCommitIdPlugin.Callback cb =
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(dotGitDirectory)
@@ -1120,8 +1128,8 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(properties.stringPropertyNames()).contains("git.commit.id");
-    assertThat(properties.stringPropertyNames()).doesNotContain("git.commit.id.full");
+    assertThat(properties).containsKey("git.commit.id");
+    assertThat(properties).doesNotContainKey("git.commit.id.full");
   }
 
   @Test
@@ -1129,7 +1137,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void testDetectCleanWorkingDirectory(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.GIT_WITH_NO_CHANGES);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 7);
     String dirtySuffix = "-dirtyTest";
     gitDescribeConfig.setDirty(dirtySuffix);
@@ -1147,8 +1155,8 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(properties.get("git.dirty")).isEqualTo("false");
-    assertThat(properties).contains(entry("git.commit.id.describe", "85c2888")); // assert no dirtySuffix at the end!
+    assertThat(properties.getProperty("git.dirty")).isEqualTo("false");
+    assertThat(properties).containsEntry("git.commit.id.describe", "85c2888"); // assert no dirtySuffix at the end!
   }
 
   @Test
@@ -1156,7 +1164,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void testDetectDirtyWorkingDirectory(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 7);
     String dirtySuffix = "-dirtyTest";
     gitDescribeConfig.setDirty(dirtySuffix);
@@ -1174,8 +1182,8 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(properties.get("git.dirty")).isEqualTo("true");
-    assertThat(properties).contains(entry("git.commit.id.describe", "0b0181b" + dirtySuffix)); // assert dirtySuffix at the end!
+    assertThat(properties.getProperty("git.dirty")).isEqualTo("true");
+    assertThat(properties).containsEntry("git.commit.id.describe", "0b0181b" + dirtySuffix); // assert dirtySuffix at the end!
   }
 
   @Test
@@ -1183,7 +1191,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateClosestTagInformationWithExcludeLightweightTagsForClosestTag(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_LIGHTWEIGHT_TAG_BEFORE_ANNOTATED_TAG);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 9);
     gitDescribeConfig.setDirty("-customDirtyMark");
     gitDescribeConfig.setTags(false); // exclude lightweight tags
@@ -1216,7 +1224,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateClosestTagInformationWithIncludeLightweightTagsForClosestTag(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_LIGHTWEIGHT_TAG_BEFORE_ANNOTATED_TAG);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 9);
     gitDescribeConfig.setDirty("-customDirtyMark");
     gitDescribeConfig.setTags(true); // include lightweight tags
@@ -1247,7 +1255,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateClosestTagInformationWithIncludeLightweightTagsForClosestTagAndPreferAnnotatedTags(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_COMMIT_THAT_HAS_TWO_TAGS);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 9);
     gitDescribeConfig.setDirty("-customDirtyMark");
     gitDescribeConfig.setTags(true); // include lightweight tags
@@ -1278,7 +1286,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGenerateClosestTagInformationWithIncludeLightweightTagsForClosestTagAndFilter(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_COMMIT_THAT_HAS_TWO_TAGS);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 9);
     gitDescribeConfig.setDirty("-customDirtyMark");
     gitDescribeConfig.setTags(true); // include lightweight tags
@@ -1310,7 +1318,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void verifyEvalOnDifferentCommitWithParentOfHead(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_TAG_ON_DIFFERENT_BRANCH);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 9);
     gitDescribeConfig.setDirty(null);
 
@@ -1341,7 +1349,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void verifyEvalOnDifferentCommitWithBranchName(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_TAG_ON_DIFFERENT_BRANCH);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 9);
     gitDescribeConfig.setDirty(null);
 
@@ -1376,7 +1384,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void verifyEvalOnDifferentCommitWithTagName(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_TAG_ON_DIFFERENT_BRANCH);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 9);
     gitDescribeConfig.setDirty(null);
 
@@ -1411,7 +1419,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void verifyEvalOnDifferentCommitWithCommitHash(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_TAG_ON_DIFFERENT_BRANCH);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(true, 9);
     gitDescribeConfig.setDirty(null);
 
@@ -1503,7 +1511,7 @@ public class GitCommitIdPluginIntegrationTest {
   public void shouldGeneratePropertiesWithMultiplePrefixesAndReactorProject(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
-    
+
     GitDescribeConfig gitDescribeConfig = createGitDescribeConfig(false, 7);
     gitDescribeConfig.setDirty("-dirty"); // checking if dirty works as expected
 
@@ -1561,27 +1569,29 @@ public class GitCommitIdPluginIntegrationTest {
   }
 
   private void assertPropertyPresentAndEqual(Properties properties, String key, String expected) {
-    assertThat(properties.stringPropertyNames()).contains(key);
+    assertThat(properties).containsKey(key);
     assertThat(properties.getProperty(key)).isEqualTo(expected);
   }
 
   private void assertGitPropertiesPresentInProject(Properties properties) {
-    assertThat(properties.contains("git.build.time"));
-    assertThat(properties.contains("git.build.host"));
-    assertThat(properties.contains("git.branch"));
-    assertThat(properties.contains("git.commit.id.full"));
-    assertThat(properties.contains("git.commit.id.abbrev"));
-    assertThat(properties.contains("git.commit.id.describe"));
-    assertThat(properties.contains("git.build.user.name"));
-    assertThat(properties.contains("git.build.user.email"));
-    assertThat(properties.contains("git.commit.user.name"));
-    assertThat(properties.contains("git.commit.user.email"));
-    assertThat(properties.contains("git.commit.message.full"));
-    assertThat(properties.contains("git.commit.message.short"));
-    assertThat(properties.contains("git.commit.time"));
-    assertThat(properties.contains("git.remote.origin.url"));
-    assertThat(properties.contains("git.closest.tag.name"));
-    assertThat(properties.contains("git.closest.tag.commit.count"));
+    assertThat(properties).containsKeys(
+        "git.build.time",
+        "git.build.host",
+        "git.branch",
+        "git.commit.id",
+        "git.commit.id.abbrev",
+        "git.commit.id.describe",
+        "git.build.user.name",
+        "git.build.user.email",
+        "git.commit.user.name",
+        "git.commit.user.email",
+        "git.commit.message.full",
+        "git.commit.message.short",
+        "git.commit.time",
+        "git.remote.origin.url",
+        "git.closest.tag.name",
+        "git.closest.tag.commit.count"
+    );
   }
 
   private File createTmpDotGitDirectory(@Nonnull AvailableGitTestRepo availableGitTestRepo) throws IOException {
