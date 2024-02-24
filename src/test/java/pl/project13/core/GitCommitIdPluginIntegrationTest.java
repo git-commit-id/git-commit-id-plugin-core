@@ -947,12 +947,11 @@ public class GitCommitIdPluginIntegrationTest {
       GitCommitIdPlugin.runPlugin(cb, properties);
 
       // then
-      assertThat(properties.stringPropertyNames()).contains("git.commit.id.describe");
+      assertThat(properties).containsKey("git.commit.id.describe");
       assertThat(properties.getProperty("git.commit.id.describe")).startsWith(gitDescribeMatchNeedle);
 
-      assertThat(properties.stringPropertyNames()).contains("git.commit.id.full");
-      assertThat(properties.get("git.commit.id.full")).isNotEqualTo(commitIdOfMatchNeedle);
-      assertThat(properties.get("git.commit.id.full")).isEqualTo(headCommitId);
+      assertThat(headCommitId).isNotEqualTo(commitIdOfMatchNeedle);
+      assertPropertyPresentAndEqual(properties, "git.commit.id.full", headCommitId);
       assertPropertyPresentAndEqual(properties, "git.total.commit.count", "3");
     }
   }
@@ -1123,8 +1122,8 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(properties.stringPropertyNames()).contains("git.commit.id");
-    assertThat(properties.stringPropertyNames()).doesNotContain("git.commit.id.full");
+    assertThat(properties).containsKey("git.commit.id");
+    assertThat(properties).doesNotContainKey("git.commit.id.full");
   }
 
   @Test
@@ -1563,9 +1562,8 @@ public class GitCommitIdPluginIntegrationTest {
     return gitDescribeConfig;
   }
 
-  private void assertPropertyPresentAndEqual(Properties properties, String key, String expected) {
-    assertThat(properties.stringPropertyNames()).contains(key);
-    assertThat(properties.getProperty(key)).isEqualTo(expected);
+  private static void assertPropertyPresentAndEqual(Properties properties, String key, String expected) {
+    assertThat(properties).containsEntry(key, expected);
   }
 
   private static void assertGitPropertiesPresentInProject(Properties properties) {
