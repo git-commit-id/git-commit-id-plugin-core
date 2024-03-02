@@ -414,6 +414,7 @@ public class GitCommitIdPluginIntegrationTest {
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(emptyGitDir)
                     .setUseNativeGit(useNativeGit)
+                    .setShouldFailOnNoGitDirectory(true)
                     .build();
     Properties properties = new Properties();
 

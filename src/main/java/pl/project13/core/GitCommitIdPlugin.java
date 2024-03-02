@@ -21,6 +21,7 @@ import pl.project13.core.cibuild.BuildServerDataProvider;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.BuildFileChangeListener;
+import pl.project13.core.util.GitDirLocator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -279,6 +280,8 @@ public class GitCommitIdPlugin {
     Charset getPropertiesSourceCharset();
 
     boolean shouldPropertiesEscapeUnicode();
+
+    boolean shouldFailOnNoGitDirectory();
   }
 
   protected static final Pattern allowedCharactersForEvaluateOnCommit = Pattern.compile("[a-zA-Z0-9\\_\\-\\^\\/\\.]+");
@@ -341,16 +344,51 @@ public class GitCommitIdPlugin {
       throw new GitCommitIdExecutionException("suspicious argument for evaluateOnCommit, aborting execution!");
     }
 
-    if (cb.useNativeGit()) {
-      loadGitDataWithNativeGit(cb, properties);
+    File dotGitDirectory = findDotGitDirectory(cb);
+    if (dotGitDirectory != null) {
+      cb.getLogInterface().info("dotGitDirectory '" + dotGitDirectory.getAbsolutePath() + "'");
     } else {
-      loadGitDataWithJGit(cb, properties);
+      cb.getLogInterface().info("dotGitDirectory is null, aborting execution!");
+      return;
+    }
+
+    if (cb.useNativeGit()) {
+      loadGitDataWithNativeGit(cb, dotGitDirectory, properties);
+    } else {
+      loadGitDataWithJGit(cb, dotGitDirectory, properties);
     }
   }
 
-  private static void loadGitDataWithNativeGit(@Nonnull Callback cb, @Nonnull Properties properties) throws GitCommitIdExecutionException {
+  private static File findDotGitDirectory(@Nonnull Callback cb) throws GitCommitIdExecutionException {
+    File dotGitDirectory = lookupGitDirectory(cb);
+    if (cb.shouldFailOnNoGitDirectory() && !directoryExists(dotGitDirectory)) {
+      throw new GitCommitIdExecutionException(
+        ".git directory is not found! Please specify a valid [dotGitDirectory] in your"
+          + " project");
+    }
+    return dotGitDirectory;
+  }
+
+  private static boolean directoryExists(@Nullable File fileLocation) {
+    return fileLocation != null && fileLocation.exists() && fileLocation.isDirectory();
+  }
+
+  /**
+   * Find the git directory of the currently used project. If it's not already specified, this
+   * method will try to find it.
+   *
+   * @return the File representation of the .git directory
+   */
+  private static File lookupGitDirectory(@Nonnull Callback cb) throws GitCommitIdExecutionException {
+    return new GitDirLocator(cb.getProjectBaseDir()).lookupGitDirectory(cb.getDotGitDirectory());
+  }
+
+  private static void loadGitDataWithNativeGit(
+      @Nonnull Callback cb,
+      @Nonnull File dotGitDirectory,
+      @Nonnull Properties properties) throws GitCommitIdExecutionException {
     GitDataProvider nativeGitProvider = NativeGitProvider
-            .on(cb.getDotGitDirectory().getParentFile(), cb.getNativeGitTimeoutInMs(), cb.getLogInterface())
+            .on(dotGitDirectory.getParentFile(), cb.getNativeGitTimeoutInMs(), cb.getLogInterface())
             .setPrefixDot(cb.getPrefixDot())
             .setAbbrevLength(cb.getAbbrevLength())
             .setDateFormat(cb.getDateFormat())
@@ -365,9 +403,12 @@ public class GitCommitIdPlugin {
     nativeGitProvider.loadGitData(cb.getEvaluateOnCommit(), cb.getSystemEnv(), properties);
   }
 
-  private static void loadGitDataWithJGit(@Nonnull Callback cb, @Nonnull Properties properties) throws GitCommitIdExecutionException {
+  private static void loadGitDataWithJGit(
+      @Nonnull Callback cb,
+      @Nonnull File dotGitDirectory,
+      @Nonnull Properties properties) throws GitCommitIdExecutionException {
     GitDataProvider jGitProvider = JGitProvider
-            .on(cb.getDotGitDirectory(), cb.getLogInterface())
+            .on(dotGitDirectory, cb.getLogInterface())
             .setPrefixDot(cb.getPrefixDot())
             .setAbbrevLength(cb.getAbbrevLength())
             .setDateFormat(cb.getDateFormat())
