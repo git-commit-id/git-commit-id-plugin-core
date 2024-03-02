@@ -68,14 +68,50 @@ public class GitDirLocator {
    */
   @Nullable
   public File lookupGitDirectory(@Nonnull File manuallyConfiguredDir) throws GitCommitIdExecutionException {
-    File dotGitDirectory = runSearch(manuallyConfiguredDir);
+    File dotGitDirectory = runSearch(manuallyConfiguredDir, true);
     if (shouldFailOnNoGitDirectory && !directoryExists(dotGitDirectory)) {
       throw new GitCommitIdExecutionException(
         ".git directory is not found! Please specify a valid [dotGitDirectory] in your"
           + " project");
     }
+    // assert dotGitDirectory != null
     if (useNativeGit) {
-      dotGitDirectory = dotGitDirectory.getParentFile();
+      // Check if the resolved directory structure looks like it is a submodule
+      // path like `your-project/.git/modules/remote-module`.
+      if (dotGitDirectory != null) {
+        File parent = dotGitDirectory.getParentFile();
+        if (parent != null) {
+          File parentParent = parent.getParentFile();
+          if (parentParent != null && parentParent.getName().equals(".git") && parent.getName().equals("modules")) {
+            // Yes, we have a submodule, so this becomes a bit more tricky!
+            // First what we need to find is the unresolvedGitDir
+            File unresolvedGitDir = runSearch(manuallyConfiguredDir, false);
+            // Now to be extra sure, check if the unresolved
+            // ".git" we have found is actually a file, which is the case for submodules
+            if (unresolvedGitDir != null && unresolvedGitDir.isFile()) {
+              // Yes, it's a submodule!
+              // For the native git executable we can not use the resolved
+              // dotGitDirectory which looks like `your-project/.git/modules/remote-module`.
+              // The main reason seems that some git commands like `git config`
+              // consume the relative worktree configuration like
+              // `worktree = ../../../remote-module` from that location.
+              // When running `git config` in `your-project/.git/modules/remote-module`
+              // it would fail with an error since the relative worktree location is
+              // only valid from the original location (`your-project/remote-module/.git`).
+              //
+              // Hence instead of using the resolved git dir location we need to use the
+              // unresolvedGitDir, but we need to keep in mind that we initially have pointed to
+              // a `git`-File like `your-project/remote-module/.git`
+              dotGitDirectory = unresolvedGitDir;
+            }
+          }
+        }
+      }
+      // The directory is likely an actual .dot-dir like `your-project/.git`.
+      // In such a directory we can not run any git commands so we need to use the parent.
+      if (dotGitDirectory != null) {
+        dotGitDirectory = dotGitDirectory.getParentFile();
+      }
     }
     return dotGitDirectory;
   }
@@ -84,8 +120,8 @@ public class GitDirLocator {
     return fileLocation != null && fileLocation.exists() && fileLocation.isDirectory();
   }
 
-
-  private File runSearch(@Nonnull File manuallyConfiguredDir) {
+  @Nullable
+  private File runSearch(@Nonnull File manuallyConfiguredDir, boolean resolveGitReferenceFile) {
     if (manuallyConfiguredDir.exists()) {
 
       // If manuallyConfiguredDir is a directory then we can use it as the git path.
@@ -93,6 +129,9 @@ public class GitDirLocator {
         return manuallyConfiguredDir;
       }
 
+      if (manuallyConfiguredDir.isFile() && !resolveGitReferenceFile) {
+        return manuallyConfiguredDir;
+      }
       // If the path exists but is not a directory it might be a git submodule "gitdir" link.
       File gitDirLinkPath = processGitDirFile(manuallyConfiguredDir);
 
@@ -108,7 +147,7 @@ public class GitDirLocator {
        */
     }
 
-    return findProjectGitDirectory();
+    return findProjectGitDirectory(resolveGitReferenceFile);
   }
 
   /**
@@ -117,7 +156,7 @@ public class GitDirLocator {
    * @return File which represents the location of the .git directory or NULL if none found.
    */
   @Nullable
-  private File findProjectGitDirectory() {
+  private File findProjectGitDirectory(boolean resolveGitReferenceFile) {
     File basedir = this.projectBasedir;
     while (basedir != null) {
       File gitdir = new File(basedir, Constants.DOT_GIT);
@@ -125,7 +164,11 @@ public class GitDirLocator {
         if (gitdir.isDirectory()) {
           return gitdir;
         } else if (gitdir.isFile()) {
-          return processGitDirFile(gitdir);
+          if (resolveGitReferenceFile) {
+            return processGitDirFile(gitdir);
+          } else {
+            return gitdir;
+          }
         } else {
           return null;
         }
