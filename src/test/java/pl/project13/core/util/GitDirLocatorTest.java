@@ -38,7 +38,7 @@ public class GitDirLocatorTest {
     File dotGitDir = folder.newFolder("temp");
     try {
       // when
-      GitDirLocator locator = new GitDirLocator(dotGitDir);
+      GitDirLocator locator = new GitDirLocator(dotGitDir, true);
       File foundDirectory = locator.lookupGitDirectory(dotGitDir);
 
       // then
@@ -71,7 +71,7 @@ public class GitDirLocatorTest {
 
     try {
       // when
-      GitDirLocator locator = new GitDirLocator(dotGitDir);
+      GitDirLocator locator = new GitDirLocator(dotGitDir, true);
       File foundDirectory = locator.lookupGitDirectory(dotGitDir);
 
       // then

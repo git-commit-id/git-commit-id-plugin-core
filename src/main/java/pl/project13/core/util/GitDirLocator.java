@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.eclipse.jgit.lib.Constants;
+import pl.project13.core.GitCommitIdExecutionException;
 
 /**
  * This class encapsulates logic to locate a valid .git directory of the currently used project. If
@@ -32,6 +33,7 @@ import org.eclipse.jgit.lib.Constants;
  */
 public class GitDirLocator {
   final File projectBasedir;
+  final boolean shouldFailOnNoGitDirectory;
 
   /**
    * Constructor to encapsulates all references required to locate a valid .git directory
@@ -39,8 +41,9 @@ public class GitDirLocator {
    * @param projectBasedir The project basedir that will be used as last resort to search
    *                       the parent project hierarchy until a .git directory is found.
    */
-  public GitDirLocator(File projectBasedir) {
+  public GitDirLocator(File projectBasedir, boolean shouldFailOnNoGitDirectory) {
     this.projectBasedir = projectBasedir;
+    this.shouldFailOnNoGitDirectory = shouldFailOnNoGitDirectory;
   }
 
   /**
@@ -53,7 +56,22 @@ public class GitDirLocator {
    *     location or within the project or it's reactor projects.
    */
   @Nullable
-  public File lookupGitDirectory(@Nonnull File manuallyConfiguredDir) {
+  public File lookupGitDirectory(@Nonnull File manuallyConfiguredDir) throws GitCommitIdExecutionException {
+    File dotGitDirectory = runSearch(manuallyConfiguredDir);
+    if (shouldFailOnNoGitDirectory && !directoryExists(dotGitDirectory)) {
+      throw new GitCommitIdExecutionException(
+        ".git directory is not found! Please specify a valid [dotGitDirectory] in your"
+          + " project");
+    }
+    return dotGitDirectory;
+  }
+
+  private static boolean directoryExists(@Nullable File fileLocation) {
+    return fileLocation != null && fileLocation.exists() && fileLocation.isDirectory();
+  }
+
+
+  private File runSearch(@Nonnull File manuallyConfiguredDir) {
     if (manuallyConfiguredDir.exists()) {
 
       // If manuallyConfiguredDir is a directory then we can use it as the git path.

@@ -359,28 +359,17 @@ public class GitCommitIdPlugin {
     }
   }
 
-  private static File findDotGitDirectory(@Nonnull Callback cb) throws GitCommitIdExecutionException {
-    File dotGitDirectory = lookupGitDirectory(cb);
-    if (cb.shouldFailOnNoGitDirectory() && !directoryExists(dotGitDirectory)) {
-      throw new GitCommitIdExecutionException(
-        ".git directory is not found! Please specify a valid [dotGitDirectory] in your"
-          + " project");
-    }
-    return dotGitDirectory;
-  }
-
-  private static boolean directoryExists(@Nullable File fileLocation) {
-    return fileLocation != null && fileLocation.exists() && fileLocation.isDirectory();
-  }
-
   /**
    * Find the git directory of the currently used project. If it's not already specified, this
    * method will try to find it.
    *
    * @return the File representation of the .git directory
    */
-  private static File lookupGitDirectory(@Nonnull Callback cb) throws GitCommitIdExecutionException {
-    return new GitDirLocator(cb.getProjectBaseDir()).lookupGitDirectory(cb.getDotGitDirectory());
+  private static File findDotGitDirectory(@Nonnull Callback cb) throws GitCommitIdExecutionException {
+    return new GitDirLocator(
+      cb.getProjectBaseDir(),
+      cb.shouldFailOnNoGitDirectory()
+    ).lookupGitDirectory(cb.getDotGitDirectory());
   }
 
   private static void loadGitDataWithNativeGit(
