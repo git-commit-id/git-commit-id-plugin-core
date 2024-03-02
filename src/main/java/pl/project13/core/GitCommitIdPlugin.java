@@ -344,7 +344,11 @@ public class GitCommitIdPlugin {
       throw new GitCommitIdExecutionException("suspicious argument for evaluateOnCommit, aborting execution!");
     }
 
-    File dotGitDirectory = findDotGitDirectory(cb);
+    File dotGitDirectory = new GitDirLocator(
+        cb.getProjectBaseDir(),
+        cb.useNativeGit(),
+        cb.shouldFailOnNoGitDirectory()
+    ).lookupGitDirectory(cb.getDotGitDirectory());
     if (dotGitDirectory != null) {
       cb.getLogInterface().info("dotGitDirectory '" + dotGitDirectory.getAbsolutePath() + "'");
     } else {
@@ -359,25 +363,12 @@ public class GitCommitIdPlugin {
     }
   }
 
-  /**
-   * Find the git directory of the currently used project. If it's not already specified, this
-   * method will try to find it.
-   *
-   * @return the File representation of the .git directory
-   */
-  private static File findDotGitDirectory(@Nonnull Callback cb) throws GitCommitIdExecutionException {
-    return new GitDirLocator(
-      cb.getProjectBaseDir(),
-      cb.shouldFailOnNoGitDirectory()
-    ).lookupGitDirectory(cb.getDotGitDirectory());
-  }
-
   private static void loadGitDataWithNativeGit(
       @Nonnull Callback cb,
       @Nonnull File dotGitDirectory,
       @Nonnull Properties properties) throws GitCommitIdExecutionException {
     GitDataProvider nativeGitProvider = NativeGitProvider
-            .on(dotGitDirectory.getParentFile(), cb.getNativeGitTimeoutInMs(), cb.getLogInterface())
+            .on(dotGitDirectory, cb.getNativeGitTimeoutInMs(), cb.getLogInterface())
             .setPrefixDot(cb.getPrefixDot())
             .setAbbrevLength(cb.getAbbrevLength())
             .setDateFormat(cb.getDateFormat())

@@ -33,6 +33,7 @@ import pl.project13.core.GitCommitIdExecutionException;
  */
 public class GitDirLocator {
   final File projectBasedir;
+  final boolean useNativeGit;
   final boolean shouldFailOnNoGitDirectory;
 
   /**
@@ -40,9 +41,19 @@ public class GitDirLocator {
    *
    * @param projectBasedir The project basedir that will be used as last resort to search
    *                       the parent project hierarchy until a .git directory is found.
+   * @param useNativeGit Boolean that indicates if we use the native git implementation or the
+   *                     jGit Implementation. For the native git we usually need to
+   *                     use the parent "git"-Folder, as git can not run commands
+   *                     in "your-project/.git".
+   * @param shouldFailOnNoGitDirectory Boolean that indicates if the process should fail if no
+   *                                   git directory can be found.
    */
-  public GitDirLocator(File projectBasedir, boolean shouldFailOnNoGitDirectory) {
+  public GitDirLocator(
+      File projectBasedir,
+      boolean useNativeGit,
+      boolean shouldFailOnNoGitDirectory) {
     this.projectBasedir = projectBasedir;
+    this.useNativeGit = useNativeGit;
     this.shouldFailOnNoGitDirectory = shouldFailOnNoGitDirectory;
   }
 
@@ -62,6 +73,9 @@ public class GitDirLocator {
       throw new GitCommitIdExecutionException(
         ".git directory is not found! Please specify a valid [dotGitDirectory] in your"
           + " project");
+    }
+    if (useNativeGit) {
+      dotGitDirectory = dotGitDirectory.getParentFile();
     }
     return dotGitDirectory;
   }
