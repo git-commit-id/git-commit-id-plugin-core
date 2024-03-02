@@ -74,7 +74,7 @@ public class GitDirLocator {
         ".git directory is not found! Please specify a valid [dotGitDirectory] in your"
           + " project");
     }
-    // assert dotGitDirectory != null
+    // dotGitDirectory can be null here, when shouldFailOnNoGitDirectory == true
     if (useNativeGit) {
       // Check if the resolved directory structure looks like it is a submodule
       // path like `your-project/.git/modules/remote-module`.
