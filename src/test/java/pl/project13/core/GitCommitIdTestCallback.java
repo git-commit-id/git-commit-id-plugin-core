@@ -57,6 +57,7 @@ public class GitCommitIdTestCallback {
   private File generateGitPropertiesFilename;
   private Charset propertiesSourceCharset = StandardCharsets.UTF_8;
   private boolean shouldPropertiesEscapeUnicode = false;
+  private boolean shouldFailOnNoGitDirectory = false;
 
   public GitCommitIdTestCallback() {
     try {
@@ -190,6 +191,11 @@ public class GitCommitIdTestCallback {
 
   public GitCommitIdTestCallback setShouldPropertiesEscapeUnicode(boolean shouldPropertiesEscapeUnicode) {
     this.shouldPropertiesEscapeUnicode = shouldPropertiesEscapeUnicode;
+    return this;
+  }
+
+  public GitCommitIdTestCallback setShouldFailOnNoGitDirectory(boolean shouldFailOnNoGitDirectory) {
+    this.shouldFailOnNoGitDirectory = shouldFailOnNoGitDirectory;
     return this;
   }
 
@@ -340,6 +346,11 @@ public class GitCommitIdTestCallback {
       @Override
       public boolean shouldPropertiesEscapeUnicode() {
         return shouldPropertiesEscapeUnicode;
+      }
+
+      @Override
+      public boolean shouldFailOnNoGitDirectory() {
+        return shouldFailOnNoGitDirectory;
       }
     };
   }

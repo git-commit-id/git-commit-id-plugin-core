@@ -414,6 +414,7 @@ public class GitCommitIdPluginIntegrationTest {
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(emptyGitDir)
                     .setUseNativeGit(useNativeGit)
+                    .setShouldFailOnNoGitDirectory(true)
                     .build();
     Properties properties = new Properties();
 
@@ -1581,6 +1582,35 @@ public class GitCommitIdPluginIntegrationTest {
 
       assertPropertyPresentAndEqual(properties, prefix + ".closest.tag.commit.count", "0");
     }
+  }
+
+  @Test
+  @Parameters(method = "useNativeGit")
+  public void shouldWorkWithRelativeSubmodules(boolean useNativeGit) throws Exception {
+    // given
+    File parentProjectDotGit =
+        createTmpDotGitDirectory(AvailableGitTestRepo.WITH_REMOTE_SUBMODULES);
+    File submoduleDotGitDirectory = parentProjectDotGit.getParentFile().toPath().resolve(
+        "remote-module").resolve(".git").toFile();
+    submoduleDotGitDirectory.getParentFile().mkdir();
+    Files.write(
+        submoduleDotGitDirectory.toPath(),
+        "gitdir: ../.git/modules/remote-module".getBytes()
+    );
+
+
+    GitCommitIdPlugin.Callback cb =
+        new GitCommitIdTestCallback()
+        .setDotGitDirectory(submoduleDotGitDirectory)
+        .setUseNativeGit(useNativeGit)
+        .build();
+    Properties properties = new Properties();
+
+    // when
+    GitCommitIdPlugin.runPlugin(cb, properties);
+
+    // then
+    assertPropertyPresentAndEqual(properties, "git.commit.id.abbrev", "945bfe6");
   }
 
   @Test

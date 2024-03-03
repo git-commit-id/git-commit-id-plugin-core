@@ -21,6 +21,7 @@ import pl.project13.core.cibuild.BuildServerDataProvider;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.BuildFileChangeListener;
+import pl.project13.core.util.GitDirLocator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -279,6 +280,8 @@ public class GitCommitIdPlugin {
     Charset getPropertiesSourceCharset();
 
     boolean shouldPropertiesEscapeUnicode();
+
+    boolean shouldFailOnNoGitDirectory();
   }
 
   protected static final Pattern allowedCharactersForEvaluateOnCommit = Pattern.compile("[a-zA-Z0-9\\_\\-\\^\\/\\.]+");
@@ -341,16 +344,31 @@ public class GitCommitIdPlugin {
       throw new GitCommitIdExecutionException("suspicious argument for evaluateOnCommit, aborting execution!");
     }
 
-    if (cb.useNativeGit()) {
-      loadGitDataWithNativeGit(cb, properties);
+    File dotGitDirectory = new GitDirLocator(
+        cb.getProjectBaseDir(),
+        cb.useNativeGit(),
+        cb.shouldFailOnNoGitDirectory()
+    ).lookupGitDirectory(cb.getDotGitDirectory());
+    if (dotGitDirectory != null) {
+      cb.getLogInterface().info("dotGitDirectory '" + dotGitDirectory.getAbsolutePath() + "'");
     } else {
-      loadGitDataWithJGit(cb, properties);
+      cb.getLogInterface().info("dotGitDirectory is null, aborting execution!");
+      return;
+    }
+
+    if (cb.useNativeGit()) {
+      loadGitDataWithNativeGit(cb, dotGitDirectory, properties);
+    } else {
+      loadGitDataWithJGit(cb, dotGitDirectory, properties);
     }
   }
 
-  private static void loadGitDataWithNativeGit(@Nonnull Callback cb, @Nonnull Properties properties) throws GitCommitIdExecutionException {
+  private static void loadGitDataWithNativeGit(
+      @Nonnull Callback cb,
+      @Nonnull File dotGitDirectory,
+      @Nonnull Properties properties) throws GitCommitIdExecutionException {
     GitDataProvider nativeGitProvider = NativeGitProvider
-            .on(cb.getDotGitDirectory().getParentFile(), cb.getNativeGitTimeoutInMs(), cb.getLogInterface())
+            .on(dotGitDirectory, cb.getNativeGitTimeoutInMs(), cb.getLogInterface())
             .setPrefixDot(cb.getPrefixDot())
             .setAbbrevLength(cb.getAbbrevLength())
             .setDateFormat(cb.getDateFormat())
@@ -365,9 +383,12 @@ public class GitCommitIdPlugin {
     nativeGitProvider.loadGitData(cb.getEvaluateOnCommit(), cb.getSystemEnv(), properties);
   }
 
-  private static void loadGitDataWithJGit(@Nonnull Callback cb, @Nonnull Properties properties) throws GitCommitIdExecutionException {
+  private static void loadGitDataWithJGit(
+      @Nonnull Callback cb,
+      @Nonnull File dotGitDirectory,
+      @Nonnull Properties properties) throws GitCommitIdExecutionException {
     GitDataProvider jGitProvider = JGitProvider
-            .on(cb.getDotGitDirectory(), cb.getLogInterface())
+            .on(dotGitDirectory, cb.getLogInterface())
             .setPrefixDot(cb.getPrefixDot())
             .setAbbrevLength(cb.getAbbrevLength())
             .setDateFormat(cb.getDateFormat())
