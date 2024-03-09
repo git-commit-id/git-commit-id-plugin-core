@@ -33,6 +33,17 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.target>11</java.target>
 
+        <!--
+        do not use
+        6.8.0.202311291450-r
+        6.9.0.202403050737-r
+        due to
+        ClassNotFoundException: org.eclipse.jgit.internal.JGitText
+        Refs
+        https://github.com/eclipse-jgit/jgit/issues/17
+        https://github.com/eclipse-jgit/jgit/issues/28
+        https://github.com/eclipse-jgit/jgit/issues/36
+        -->
         <jgit.version>6.7.0.202309050840-r</jgit.version>
         <junit.version>4.13.2</junit.version>
         <mockito.version>5.11.0</mockito.version>
