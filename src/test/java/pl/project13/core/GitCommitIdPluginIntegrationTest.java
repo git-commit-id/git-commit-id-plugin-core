@@ -17,6 +17,9 @@
 
 package pl.project13.core;
 
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.apache.commons.io.FileUtils;
@@ -29,11 +32,24 @@ import pl.project13.core.util.GenericFileManager;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
@@ -477,6 +493,122 @@ public class GitCommitIdPluginIntegrationTest {
     Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
     assertThat(p.size()).isGreaterThan(10);
     Assert.assertEquals(p, properties);
+  }
+
+  @Test
+  @Parameters(method = "useNativeGit")
+  // https://github.com/git-commit-id/git-commit-id-maven-plugin/pull/123
+  public void shouldGenerateJsonWithCorrectObjectStructure(boolean useNativeGit) throws Exception {
+    // given
+    File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
+    CommitIdPropertiesOutputFormat commitIdPropertiesOutputFormat = CommitIdPropertiesOutputFormat.JSON;
+
+    File targetFilePath = sandbox.resolve("custom-git.json").toFile();
+    targetFilePath.delete();
+
+    GitCommitIdPlugin.Callback cb =
+      new GitCommitIdTestCallback()
+        .setDotGitDirectory(dotGitDirectory)
+        .setUseNativeGit(useNativeGit)
+        .setShouldGenerateGitPropertiesFile(true)
+        .setCommitIdGenerationMode(CommitIdGenerationMode.FULL)
+        .setGenerateGitPropertiesFilename(targetFilePath)
+        .setPropertiesOutputFormat(commitIdPropertiesOutputFormat)
+        .build();
+    Properties properties = new Properties();
+
+    // when
+    GitCommitIdPlugin.runPlugin(cb, properties);
+    // then
+    assertThat(targetFilePath).exists();
+
+    try (FileInputStream fis = new FileInputStream(targetFilePath)) {
+      try (InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
+        try (JsonReader jsonReader = Json.createReader(reader)) {
+          JsonObject jsonObject = jsonReader.readObject();
+          buildTree(jsonObject.keySet());
+        }
+      }
+    }
+  }
+
+  class TreeNode {
+    String value;
+    private Set<TreeNode> children;
+
+    public TreeNode(String value) {
+      this.value = value;
+      this.children = new HashSet<>();
+    }
+
+    public void addChild(TreeNode t){
+      this.children.add(t);
+    }
+
+    @Override
+    public String toString() {
+      return "TreeNode{" +
+        "value='" + value + "'," +
+        "children=" + children +
+        "}";
+    }
+  }
+
+  class TreeLeave extends TreeNode {
+    public TreeLeave(String value) {
+      super(value);
+    }
+
+    @Override
+    public void addChild(TreeNode t) {
+      throw new IllegalStateException(
+        "Unexpected TreeLeave: Can not nest " + t.value + " under " + this.value);
+    }
+
+    @Override
+    public String toString() {
+      return "TreeLeave{" +
+        "value='" + value + "'}";
+    }
+  }
+
+  private TreeNode buildTree(Set<String> nodes) {
+    TreeNode root = new TreeNode("");
+
+    for (String node : nodes) {
+      TreeNode currentNode = root;
+      String[] keys = node.split("\\.");
+
+      for (int i = 0; i < keys.length; i++) {
+        String key = keys[i];
+
+        TreeNode child = findChild(currentNode, key);
+        if (i == keys.length - 1) {
+          if (child == null) {
+            child = new TreeLeave(key);
+          } else if (child instanceof TreeNode) {
+            throw new IllegalStateException(
+              "Unexpected TreeNode: Can not nest " + key + " under " + child.value);
+          }
+        } else {
+          if (child == null) {
+            child = new TreeNode(key);
+          }
+        }
+        currentNode.addChild(child);
+        currentNode = child;
+      }
+    }
+    return root;
+  }
+
+  private TreeNode findChild(TreeNode node, String value) {
+    for (TreeNode child : node.children) {
+      if (child.value.equals(value)) {
+        return child;
+      }
+    }
+    return null;
   }
 
   @Test
