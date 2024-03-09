@@ -507,7 +507,7 @@ public class GitCommitIdPluginIntegrationTest {
     targetFilePath.delete();
 
     GitCommitIdPlugin.Callback cb =
-      new GitCommitIdTestCallback()
+        new GitCommitIdTestCallback()
         .setDotGitDirectory(dotGitDirectory)
         .setUseNativeGit(useNativeGit)
         .setShouldGenerateGitPropertiesFile(true)
@@ -541,7 +541,7 @@ public class GitCommitIdPluginIntegrationTest {
       this.children = new HashSet<>();
     }
 
-    public void addChild(TreeNode t){
+    public void addChild(TreeNode t) {
       this.children.add(t);
     }
 
