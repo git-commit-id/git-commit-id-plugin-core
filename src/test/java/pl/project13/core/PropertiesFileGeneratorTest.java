@@ -17,38 +17,63 @@
 
 package pl.project13.core;
 
-import org.junit.Before;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.BuildFileChangeListener;
+import pl.project13.core.util.GenericFileManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+@RunWith(JUnitParamsRunner.class)
 public class PropertiesFileGeneratorTest {
   @Rule
   public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  private PropertiesFileGenerator propertiesFileGenerator;
-  
-  @Before
-  public void setUp() {
-    LogInterface logInterface = mock(LogInterface.class);
+  private LogInterface getLogInterface() {
+    return mock(LogInterface.class);
+  }
+
+  private BuildFileChangeListener getBuildFileChangeListener() {
     BuildFileChangeListener buildFileChangeListener = file -> {
       // Ignore
     };
+    return buildFileChangeListener;
+  }
 
-    propertiesFileGenerator = new PropertiesFileGenerator(logInterface, buildFileChangeListener, CommitIdPropertiesOutputFormat.PROPERTIES, "", "test");
+  private PropertiesFileGenerator getPropertiesFileGenerator() {
+    return getPropertiesFileGenerator(CommitIdPropertiesOutputFormat.PROPERTIES);
+  }
+
+  private PropertiesFileGenerator getPropertiesFileGenerator(CommitIdPropertiesOutputFormat propertiesOutputFormat) {
+    return new PropertiesFileGenerator(
+      getLogInterface(),
+      getBuildFileChangeListener(),
+      CommitIdPropertiesOutputFormat.PROPERTIES,
+      "",
+      "test"
+    );
   }
 
   /**
@@ -66,7 +91,7 @@ public class PropertiesFileGeneratorTest {
     properties.put(GitCommitPropertyConstant.COMMIT_MESSAGE_SHORT, "測試中文");
 
     Path propertiesPath = temporaryFolder.getRoot().toPath().resolve("git.properties");
-    propertiesFileGenerator.maybeGeneratePropertiesFile(
+    getPropertiesFileGenerator().maybeGeneratePropertiesFile(
             properties, temporaryFolder.getRoot(), propertiesPath.toFile(), UTF_8, false);
 
     String actualContent = Files.readString(propertiesPath, UTF_8);
@@ -85,7 +110,7 @@ public class PropertiesFileGeneratorTest {
     properties.put(GitCommitPropertyConstant.COMMIT_MESSAGE_SHORT, "測試中文");
 
     Path propertiesPath = temporaryFolder.getRoot().toPath().resolve("git.properties");
-    propertiesFileGenerator.maybeGeneratePropertiesFile(
+    getPropertiesFileGenerator().maybeGeneratePropertiesFile(
             properties, temporaryFolder.getRoot(), propertiesPath.toFile(), UTF_8, true);
 
     String actualContent = Files.readString(propertiesPath, UTF_8);
@@ -103,7 +128,7 @@ public class PropertiesFileGeneratorTest {
     properties.put(GitCommitPropertyConstant.BRANCH, "develop");
   
     Path propertiesPath = temporaryFolder.getRoot().toPath().resolve("git.properties");
-    propertiesFileGenerator.maybeGeneratePropertiesFile(
+    getPropertiesFileGenerator().maybeGeneratePropertiesFile(
             properties, temporaryFolder.getRoot(), propertiesPath.toFile(), UTF_8, true);
   
     String actualContent = Files.readString(propertiesPath, UTF_8);
@@ -114,11 +139,12 @@ public class PropertiesFileGeneratorTest {
   }
 
   @Test
-  public void rereadGeneratedPropertiesFile() throws GitCommitIdExecutionException, IOException {
+  public void reReadGeneratedPropertiesFile() throws GitCommitIdExecutionException, IOException {
     Properties properties = new Properties();
     properties.put(GitCommitPropertyConstant.COMMIT_ID_FULL, "b5993378ffadd1f84dc8da220b9204d157ec0f29");
     properties.put(GitCommitPropertyConstant.BRANCH, "develop");
-  
+
+    PropertiesFileGenerator propertiesFileGenerator = getPropertiesFileGenerator();
     Path propertiesPath = temporaryFolder.getRoot().toPath().resolve("git.properties");
     propertiesFileGenerator.maybeGeneratePropertiesFile(
             properties, temporaryFolder.getRoot(), propertiesPath.toFile(), UTF_8, true);
@@ -140,7 +166,7 @@ public class PropertiesFileGeneratorTest {
     properties.put(GitCommitPropertyConstant.COMMIT_ID_FULL, "b5993378ffadd1f84dc8da220b9204d157ec0f29");
 
     Path relativePath = new File("src/blah/blub/git.properties").toPath();
-    propertiesFileGenerator.maybeGeneratePropertiesFile(
+    getPropertiesFileGenerator().maybeGeneratePropertiesFile(
             properties, temporaryFolder.getRoot(), relativePath.toFile(), UTF_8, false);
 
 
@@ -150,5 +176,51 @@ public class PropertiesFileGeneratorTest {
     String expectedContent = convertLineBreaks("#Generated by Git-Commit-Id-Plugin\n"
             + "commit.id.full=b5993378ffadd1f84dc8da220b9204d157ec0f29\n");
     assertEquals(expectedContent, actualContent);
+  }
+
+  public Collection<?> dumpAndReadFormats() {
+    Collection<?> collection = Arrays.stream(CommitIdPropertiesOutputFormat.values()).flatMap(f1 ->
+        Arrays.stream(CommitIdPropertiesOutputFormat.values()).map(f2 -> {
+          if (f1.equals(f2)) {
+            return Optional.empty();
+          } else {
+            return Optional.of(new Object[]{f1, f2});
+          }
+        }).filter(o -> o.isPresent()).map(o -> o.get())
+    ).collect(Collectors.toSet());
+    return collection;
+  }
+
+
+  @Test
+  @Parameters(method = "dumpAndReadFormats")
+  @Ignore("Read and write is not consistent...")
+  // https://github.com/git-commit-id/git-commit-id-plugin-core/issues/99
+  public void reReadGeneratedPropertiesFileWithDifferentFormats(
+      CommitIdPropertiesOutputFormat dumpFormat,
+      CommitIdPropertiesOutputFormat readFormat
+  ) throws GitCommitIdExecutionException, IOException {
+    Properties dumpedProperties = new Properties();
+    dumpedProperties.put(GitCommitPropertyConstant.COMMIT_ID_FULL, "b5993378ffadd1f84dc8da220b9204d157ec0f29");
+    dumpedProperties.put(GitCommitPropertyConstant.BRANCH, "develop");
+
+    Path propertiesPath = temporaryFolder.getRoot().toPath().resolve("git.json");
+    GenericFileManager.dumpProperties(
+        getLogInterface(),
+        dumpFormat,
+        propertiesPath.toFile(),
+        UTF_8,
+        true,
+        "test",
+        dumpedProperties
+    );
+    Properties readProperties = GenericFileManager.readProperties(
+        getLogInterface(),
+        readFormat,
+        propertiesPath.toFile(),
+        UTF_8,
+        "test"
+    );
+    Assert.assertEquals(dumpedProperties, readProperties);
   }
 }

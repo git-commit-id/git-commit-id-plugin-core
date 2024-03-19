@@ -67,10 +67,13 @@ public class YmlManager {
         loaderOptions.setProcessComments(false);
         Yaml yaml = new Yaml(loaderOptions);
         Map<String, Object> data = yaml.load(reader);
-        for (Map.Entry<String, Object> e: data.entrySet()) {
+        for (Map.Entry<String, Object> e : data.entrySet()) {
           retVal.put(e.getKey(), e.getValue());
         }
       }
+    } catch (ClassCastException e) {
+      // We are likely trying to read a properties that that was not encoded with yml-syntax
+      throw new CannotReadFileException(e);
     } catch (IOException e) {
       throw new CannotReadFileException(e);
     }
