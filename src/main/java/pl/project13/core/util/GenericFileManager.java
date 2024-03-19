@@ -33,7 +33,10 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 public class GenericFileManager {
   public static Properties readPropertiesAsUtf8(
@@ -61,6 +64,7 @@ public class GenericFileManager {
     );
   }
 
+  @Nonnull
   public static Properties readProperties(
       @Nullable LogInterface log,
       @Nonnull CommitIdPropertiesOutputFormat propertiesOutputFormat,
@@ -139,7 +143,9 @@ public class GenericFileManager {
         }
       }
     } catch (final IOException ex) {
-      throw new GitCommitIdExecutionException("Cannot create custom git properties file: " + gitPropsFile, ex);
+      throw new GitCommitIdExecutionException(
+        String.format("Failed to write %s file [%s] (for project %s)...",
+          propertiesOutputFormat.name().toLowerCase(), gitPropsFile.getAbsolutePath(), projectName));
     }
   }
 }

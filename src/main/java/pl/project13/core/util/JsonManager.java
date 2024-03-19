@@ -64,6 +64,9 @@ public class JsonManager {
           });
         }
       }
+    } catch (jakarta.json.stream.JsonParsingException e) {
+      // We are likely trying to read a properties that that was not encoded with json-syntax
+      throw new CannotReadFileException(e);
     } catch (IOException e) {
       throw new CannotReadFileException(e);
     }
