@@ -91,14 +91,14 @@ public class ProcessHandlerTest {
         String stderr = processHandler.getStderr();
         // For troubleshooting include `stderr` in message, e.g. in case there is a compilation error
         Assertions.assertEquals(
-          exitCode, actualExitCode,
-          "Process failed:\n" + stderr);
+            exitCode, actualExitCode,
+            "Process failed:\n" + stderr);
         Assertions.assertEquals(
-          STDOUT_LINE + "1\n" + STDOUT_LINE + "2\n",
-          stdoutBuilder.toString());
+            STDOUT_LINE + "1\n" + STDOUT_LINE + "2\n",
+            stdoutBuilder.toString());
         Assertions.assertEquals(
-          STDERR_LINE + "1\n" + STDERR_LINE + "2\n",
-          stderr);
+            STDERR_LINE + "1\n" + STDERR_LINE + "2\n",
+            stderr);
       }
     });
   }
@@ -116,8 +116,8 @@ public class ProcessHandlerTest {
         String stderr = processHandler.getStderr();
         // For troubleshooting include `stderr` in message, e.g. in case there is a compilation error
         Assertions.assertEquals(
-          exitCode, actualExitCode,
-          "Process failed:\n" + stderr);
+            exitCode, actualExitCode,
+            "Process failed:\n" + stderr);
         Assertions.assertNull(lastStdoutLine.get());
         Assertions.assertEquals("", stderr);
       }
@@ -136,11 +136,11 @@ public class ProcessHandlerTest {
         int actualExitCode = processHandler.exitValue(5, TimeUnit.SECONDS);
         Assertions.assertEquals(exitCode, actualExitCode);
         Assertions.assertEquals(
-          STDOUT_LINE + "1\n" + STDOUT_LINE + "2\n",
-          stdoutBuilder.toString());
+            STDOUT_LINE + "1\n" + STDOUT_LINE + "2\n",
+            stdoutBuilder.toString());
         Assertions.assertEquals(
-          STDERR_LINE + "1\n" + STDERR_LINE + "2\n",
-          processHandler.getStderr());
+            STDERR_LINE + "1\n" + STDERR_LINE + "2\n",
+            processHandler.getStderr());
       }
     });
   }
@@ -156,9 +156,9 @@ public class ProcessHandlerTest {
       Consumer<String> stdoutConsumer = line -> {};
       try (ProcessHandler processHandler = new ProcessHandler(process, stdoutConsumer)) {
         Assertions.assertThrows(
-          TimeoutException.class, () -> processHandler.exitValue(1, TimeUnit.MILLISECONDS));
+            TimeoutException.class, () -> processHandler.exitValue(1, TimeUnit.MILLISECONDS));
         Assertions.assertThrows(
-          IllegalStateException.class, processHandler::getStderr);
+            IllegalStateException.class, processHandler::getStderr);
       }
     });
   }
@@ -194,8 +194,8 @@ public class ProcessHandlerTest {
         String stderr = processHandler.getStderr();
         // For troubleshooting include `stderr` in message, e.g. in case there is a compilation error
         Assertions.assertEquals(
-          exitCode, actualExitCode,
-          "Process failed:\n" + stderr);
+            exitCode, actualExitCode,
+            "Process failed:\n" + stderr);
         Assertions.assertEquals(STDOUT_LINE + outputRepeatCount, lastStdoutLine.get());
 
         Assertions.assertTrue(stderr.startsWith(STDERR_LINE + 1));
