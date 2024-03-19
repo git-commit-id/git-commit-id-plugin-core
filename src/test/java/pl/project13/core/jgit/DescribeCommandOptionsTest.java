@@ -18,7 +18,8 @@
 package pl.project13.core.jgit;
 
 import org.eclipse.jgit.lib.Repository;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.log.LogInterface;
 
@@ -27,24 +28,28 @@ import static org.mockito.Mockito.*;
 public class DescribeCommandOptionsTest {
   private static final String evaluateOnCommit = "HEAD";
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void abbrev_shouldVerifyLengthContract_failOn41() throws Exception {
     // given
     final Repository repo = mock(Repository.class);
     final int length = 41;
     final LogInterface logInterface = mock(LogInterface.class);
 
-    DescribeCommand.on(evaluateOnCommit, repo, logInterface).abbrev(length);
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+      DescribeCommand.on(evaluateOnCommit, repo, logInterface).abbrev(length);
+    });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void abbrev_shouldVerifyLengthContract_failOnMinus12() throws Exception {
     // given
     final Repository repo = mock(Repository.class);
     final int length = -12;
     final LogInterface logInterface = mock(LogInterface.class);
 
-    DescribeCommand.on(evaluateOnCommit, repo, logInterface).abbrev(length);
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+      DescribeCommand.on(evaluateOnCommit, repo, logInterface).abbrev(length);
+    });
   }
 
   @Test

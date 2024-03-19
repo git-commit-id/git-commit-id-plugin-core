@@ -20,16 +20,17 @@ package pl.project13.core;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
-import org.junit.*;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.util.GenericFileManager;
-
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,10 +55,7 @@ import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
-@RunWith(JUnitParamsRunner.class)
 public class GitCommitIdPluginIntegrationTest {
   public static Collection<?> useNativeGit() {
     return asList(true, false);
@@ -69,20 +67,20 @@ public class GitCommitIdPluginIntegrationTest {
 
   private Path sandbox;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     sandbox = Files.createTempDirectory("sandbox.git-commit-id-core");
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     if (sandbox != null) {
       deleteDir(sandbox);
     }
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldIncludeExpectedProperties(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -114,8 +112,8 @@ public class GitCommitIdPluginIntegrationTest {
     );
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldExcludeAsConfiguredProperties(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -155,8 +153,8 @@ public class GitCommitIdPluginIntegrationTest {
     );
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldIncludeOnlyAsConfiguredProperties(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -194,8 +192,8 @@ public class GitCommitIdPluginIntegrationTest {
     );
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldExcludeAndIncludeAsConfiguredProperties(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -238,8 +236,8 @@ public class GitCommitIdPluginIntegrationTest {
     );
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldHaveNoPrefixWhenConfiguredPrefixIsEmptyStringAsConfiguredProperties(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -264,8 +262,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).containsKey("remote.origin.url");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldSkipDescribeWhenConfiguredToDoSo(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -288,8 +286,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).doesNotContainKey("git.commit.id.describe");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldNotUseBuildEnvironmentBranchInfoWhenParameterSet(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_COMMIT_THAT_HAS_TWO_TAGS);
@@ -321,8 +319,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.branch", "test_branch");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldUseJenkinsBranchInfoWhenAvailable(boolean useNativeGit) throws Exception {
     // given
     Map<String, String> env = new HashMap<>();
@@ -399,8 +397,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.branch", expectedBranchName);
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldResolvePropertiesOnDefaultSettingsForNonPomProject(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -419,8 +417,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertGitPropertiesPresentInProject(properties);
   }
 
-  @Test(expected = GitCommitIdExecutionException.class)
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldFailWithExceptionWhenNoGitRepoFound(boolean useNativeGit) throws Exception {
     // given
     File emptyGitDir = sandbox.resolve("empty_git_dir").toFile();
@@ -435,11 +433,13 @@ public class GitCommitIdPluginIntegrationTest {
     Properties properties = new Properties();
 
     // when
-    GitCommitIdPlugin.runPlugin(cb, properties);
+    org.junit.jupiter.api.Assertions.assertThrows(GitCommitIdExecutionException.class, () -> {
+      GitCommitIdPlugin.runPlugin(cb, properties);
+    });
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateCustomPropertiesFileProperties(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
@@ -466,8 +466,8 @@ public class GitCommitIdPluginIntegrationTest {
     }
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateCustomPropertiesFileJson(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
@@ -492,11 +492,11 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(targetFilePath).exists();
     Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
     assertThat(p.size()).isGreaterThan(10);
-    Assert.assertEquals(p, properties);
+    Assertions.assertEquals(p, properties);
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   // https://github.com/git-commit-id/git-commit-id-maven-plugin/pull/123
   public void shouldGenerateJsonWithCorrectObjectStructure(boolean useNativeGit) throws Exception {
     // given
@@ -611,8 +611,8 @@ public class GitCommitIdPluginIntegrationTest {
     return null;
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateCustomPropertiesFileXml(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
@@ -637,11 +637,11 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(targetFilePath).exists();
     Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
     assertThat(p.size()).isGreaterThan(10);
-    Assert.assertEquals(p, properties);
+    Assertions.assertEquals(p, properties);
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateCustomPropertiesFileYml(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT_WITH_SPECIAL_CHARACTERS);
@@ -666,11 +666,11 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(targetFilePath).exists();
     Properties p = GenericFileManager.readPropertiesAsUtf8(commitIdPropertiesOutputFormat, targetFilePath);
     assertThat(p.size()).isGreaterThan(10);
-    Assert.assertEquals(p, properties);
+    Assertions.assertEquals(p, properties);
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateDescribeWithTagOnlyWhenForceLongFormatIsFalse(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -693,8 +693,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.commit.id.describe", "v1.0.0-dirty");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateDescribeWithTagOnlyWhenForceLongFormatIsFalseAndAbbrevLengthIsNonDefault(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -718,8 +718,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.commit.id.describe-short", "v1.0.0");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateDescribeWithTagAndZeroAndCommitIdWhenForceLongFormatIsTrue(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -741,8 +741,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.commit.id.describe", "v1.0.0-0-gde4db35");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateDescribeWithTagAndZeroAndCommitIdWhenForceLongFormatIsTrueAndAbbrevLengthIsNonDefault(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -766,8 +766,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.commit.id.describe-short", "v1.0.0-0");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateCommitIdAbbrevWithDefaultLength(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -787,8 +787,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.commit.id.abbrev", "de4db35");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateCommitIdAbbrevWithNonDefaultLength(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -808,8 +808,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).containsEntry("git.commit.id.abbrev", "de4db35917");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldFormatDate(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -836,8 +836,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).containsEntry("git.commit.time", "08/19/2012");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldSkipGitDescribe(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -860,8 +860,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).doesNotContainKey("git.commit.id.describe");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldMarkGitDescribeAsDirty(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG_DIRTY);
@@ -885,8 +885,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).containsEntry("git.commit.id.describe", "v1.0.0-0-gde4db35" + dirtySuffix);
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldAlwaysPrintGitDescribe(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -909,8 +909,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.commit.id.describe", "0b0181b");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldWorkWithEmptyGitDescribe(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -932,8 +932,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertGitPropertiesPresentInProject(properties);
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldWorkWithNullGitDescribe(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -955,8 +955,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertGitPropertiesPresentInProject(properties);
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldExtractTagsOnGivenCommit(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_COMMIT_THAT_HAS_TWO_TAGS);
@@ -989,8 +989,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.total.commit.count", "2");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldExtractTagsOnGivenCommitWithOldestCommit(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_COMMIT_THAT_HAS_TWO_TAGS);
@@ -1024,8 +1024,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.total.commit.count", "1");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldExtractTagsOnHead(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -1053,8 +1053,8 @@ public class GitCommitIdPluginIntegrationTest {
       .containsOnly("v1.0.0");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void runGitDescribeWithMatchOption(boolean useNativeGit) throws Exception {
     // given
     String headCommitId = "b0c6d28b3b83bf7b905321bae67d9ca4c75a203f";
@@ -1095,8 +1095,8 @@ public class GitCommitIdPluginIntegrationTest {
     }
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateClosestTagInformationWhenOnATag(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -1121,8 +1121,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.closest.tag.commit.count", "0");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateTagInformationWhenOnATag(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -1145,8 +1145,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.tag", "v1.0.0");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateClosestTagInformationWhenOnATagAndDirty(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG_DIRTY);
@@ -1172,8 +1172,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.closest.tag.commit.count", "0");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateClosestTagInformationWhenCommitHasTwoTags(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_COMMIT_THAT_HAS_TWO_TAGS);
@@ -1202,8 +1202,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.closest.tag.commit.count", "0");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateCommitterAndAuthorInformation(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.COMMITTER_DIFFERENT_FROM_AUTHOR);
@@ -1241,8 +1241,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.commit.user.name", "John Doe");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldUseDateFormatTimeZone(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG_DIRTY);
@@ -1282,8 +1282,8 @@ public class GitCommitIdPluginIntegrationTest {
     TimeZone.setDefault(currentDefaultTimeZone);
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateCommitIdOldFashioned(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG_DIRTY);
@@ -1304,8 +1304,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).doesNotContainKey("git.commit.id.full");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void testDetectCleanWorkingDirectory(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.GIT_WITH_NO_CHANGES);
@@ -1331,8 +1331,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).containsEntry("git.commit.id.describe", "85c2888"); // assert no dirtySuffix at the end!
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void testDetectDirtyWorkingDirectory(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_ONE_COMMIT);
@@ -1358,8 +1358,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertThat(properties).containsEntry("git.commit.id.describe", "0b0181b" + dirtySuffix); // assert dirtySuffix at the end!
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateClosestTagInformationWithExcludeLightweightTagsForClosestTag(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_LIGHTWEIGHT_TAG_BEFORE_ANNOTATED_TAG);
@@ -1391,8 +1391,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.total.commit.count", "3");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateClosestTagInformationWithIncludeLightweightTagsForClosestTag(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_LIGHTWEIGHT_TAG_BEFORE_ANNOTATED_TAG);
@@ -1422,8 +1422,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.closest.tag.commit.count", "1");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateClosestTagInformationWithIncludeLightweightTagsForClosestTagAndPreferAnnotatedTags(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_COMMIT_THAT_HAS_TWO_TAGS);
@@ -1453,8 +1453,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.closest.tag.commit.count", "1");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGenerateClosestTagInformationWithIncludeLightweightTagsForClosestTagAndFilter(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_COMMIT_THAT_HAS_TWO_TAGS);
@@ -1485,8 +1485,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.closest.tag.commit.count", "1");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void verifyEvalOnDifferentCommitWithParentOfHead(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_TAG_ON_DIFFERENT_BRANCH);
@@ -1516,8 +1516,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.dirty", "true");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void verifyEvalOnDifferentCommitWithBranchName(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_TAG_ON_DIFFERENT_BRANCH);
@@ -1551,8 +1551,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.total.commit.count", "2");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void verifyEvalOnDifferentCommitWithTagName(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_TAG_ON_DIFFERENT_BRANCH);
@@ -1586,8 +1586,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.total.commit.count", "2");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void verifyEvalOnDifferentCommitWithCommitHash(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_TAG_ON_DIFFERENT_BRANCH);
@@ -1621,8 +1621,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.total.commit.count", "2");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void verifyEvalOnCommitWithTwoBranches(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_TAG_ON_DIFFERENT_BRANCH);
@@ -1651,8 +1651,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.branch", "another_branch,master,z_branch");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void verifyDetachedHeadIsNotReportedAsBranch(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_TAG_ON_DIFFERENT_BRANCH);
@@ -1678,8 +1678,8 @@ public class GitCommitIdPluginIntegrationTest {
     assertPropertyPresentAndEqual(properties, "git.branch", "master");
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldGeneratePropertiesWithMultiplePrefixesAndReactorProject(boolean useNativeGit) throws Exception {
     // given
     File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.ON_A_TAG);
@@ -1716,8 +1716,8 @@ public class GitCommitIdPluginIntegrationTest {
     }
   }
 
-  @Test
-  @Parameters(method = "useNativeGit")
+  @ParameterizedTest
+  @MethodSource("useNativeGit")
   public void shouldWorkWithRelativeSubmodules(boolean useNativeGit) throws Exception {
     // given
     File parentProjectDotGit =
@@ -1748,16 +1748,16 @@ public class GitCommitIdPluginIntegrationTest {
   @Test
   public void verifyAllowedCharactersForEvaluateOnCommit() {
     Pattern p = GitCommitIdPlugin.allowedCharactersForEvaluateOnCommit;
-    assertTrue(p.matcher("5957e419d").matches());
-    assertTrue(p.matcher("my_tag").matches());
-    assertTrue(p.matcher("my-tag").matches());
-    assertTrue(p.matcher("my.tag").matches());
-    assertTrue(p.matcher("HEAD^1").matches());
-    assertTrue(p.matcher("feature/branch").matches());
+    Assertions.assertTrue(p.matcher("5957e419d").matches());
+    Assertions.assertTrue(p.matcher("my_tag").matches());
+    Assertions.assertTrue(p.matcher("my-tag").matches());
+    Assertions.assertTrue(p.matcher("my.tag").matches());
+    Assertions.assertTrue(p.matcher("HEAD^1").matches());
+    Assertions.assertTrue(p.matcher("feature/branch").matches());
 
-    assertFalse(p.matcher("; CODE INJECTION").matches());
-    assertFalse(p.matcher("|exit").matches());
-    assertFalse(p.matcher("&&cat /etc/passwd").matches());
+    Assertions.assertFalse(p.matcher("; CODE INJECTION").matches());
+    Assertions.assertFalse(p.matcher("|exit").matches());
+    Assertions.assertFalse(p.matcher("&&cat /etc/passwd").matches());
   }
 
   private GitDescribeConfig createGitDescribeConfig(boolean forceLongFormat, int abbrev) {

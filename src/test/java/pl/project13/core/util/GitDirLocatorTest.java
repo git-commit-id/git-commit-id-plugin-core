@@ -21,21 +21,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.nio.file.Files;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import java.nio.file.Path;
 
-@RunWith(MockitoJUnitRunner.class)
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+
 public class GitDirLocatorTest {
-  @Rule
-  public TemporaryFolder folder = new TemporaryFolder();
+  @TempDir
+  public Path folder;
 
   @Test
   public void shouldUseTheManuallySpecifiedDirectory() throws Exception {
     // given
-    File dotGitDir = folder.newFolder("temp");
+    File dotGitDir = folder.toFile();
     try {
       // when
       GitDirLocator locator = new GitDirLocator(dotGitDir, false, true);
@@ -54,12 +53,15 @@ public class GitDirLocatorTest {
   @Test
   public void shouldResolveRelativeSubmodule() throws Exception {
     // given
-    folder.newFolder("main-project");
-    folder.newFolder("main-project", ".git", "modules", "sub-module");
-    folder.newFolder("main-project", "sub-module");
+    folder.resolve("main-project").toFile().mkdirs();
+    folder.resolve("main-project")
+      .resolve(".git")
+      .resolve("modules")
+      .resolve("sub-module").toFile().mkdirs();
+    folder.resolve("main-project").resolve("sub-module").toFile().mkdirs();
 
     // and a .git dir in submodule that points to the main's project .git/modules/submodule
-    File dotGitDir = folder.getRoot().toPath()
+    File dotGitDir = folder
         .resolve("main-project")
         .resolve("sub-module")
         .resolve(".git")
@@ -79,7 +81,7 @@ public class GitDirLocatorTest {
       assertThat(
           foundDirectory.getCanonicalFile()
       ).isEqualTo(
-          folder.getRoot().toPath()
+          folder
           .resolve("main-project")
           .resolve(".git")
           .resolve("modules")
