@@ -17,21 +17,18 @@
 
 package pl.project13.core;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentMatchers;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-@RunWith(JUnitParamsRunner.class)
+
 public class UriUserInfoRemoverTest {
   public static Collection<Object[]> parameters() {
     Object[][] data = new Object[][] {
@@ -67,13 +64,13 @@ public class UriUserInfoRemoverTest {
     return Arrays.asList(data);
   }
 
-  @Test
-  @Parameters(method = "parameters")
+  @ParameterizedTest
+  @MethodSource("parameters")
   public void testStripCredentialsFromOriginUrl(String input, String expected) throws GitCommitIdExecutionException {
     GitDataProvider gitDataProvider = mock(GitDataProvider.class);
     when(gitDataProvider.stripCredentialsFromOriginUrl(ArgumentMatchers.any())).thenCallRealMethod();
     String result = gitDataProvider.stripCredentialsFromOriginUrl(input);
-    assertEquals(expected, result);
+    Assertions.assertEquals(expected, result);
   }
 
 }

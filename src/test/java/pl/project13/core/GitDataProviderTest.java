@@ -17,7 +17,7 @@
 
 package pl.project13.core;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import pl.project13.core.log.LogInterface;
 
 import java.util.Properties;

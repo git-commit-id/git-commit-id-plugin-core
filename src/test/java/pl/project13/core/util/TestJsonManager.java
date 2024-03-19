@@ -18,28 +18,28 @@
 package pl.project13.core.util;
 
 import nu.studer.java.util.OrderedProperties;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import pl.project13.core.PropertiesFileGenerator;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class TestJsonManager {
 
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @TempDir
+  public Path tempFolder;
 
   @Test
   public void testDumpWithFlatGitProperty() throws Exception {
     // given
     Charset sourceCharset = StandardCharsets.UTF_8;
-    File jsonFile = tempFolder.newFile("git_properties.json");
+    File jsonFile = tempFolder.resolve("git_properties.json").toFile();
     OrderedProperties sortedLocalProperties = PropertiesFileGenerator.createOrderedProperties();
     sortedLocalProperties.setProperty("git.commit.id", "beef4e92e9cabd043b105a14514289f331b40bf2");
     sortedLocalProperties.setProperty("git.commit.id.abbrev", "beef4e9");
@@ -50,7 +50,7 @@ public class TestJsonManager {
     }
 
     // then
-    Assert.assertEquals(
+    Assertions.assertEquals(
             Arrays.asList(
                     "{",
                     "    \"git.commit.id\": \"beef4e92e9cabd043b105a14514289f331b40bf2\",",
@@ -64,7 +64,7 @@ public class TestJsonManager {
   public void testReadJsonPropertiesWithFlatGitProperty() throws Exception {
     // given
     Charset sourceCharset = StandardCharsets.UTF_8;
-    File jsonFile = tempFolder.newFile("git_properties.json");
+    File jsonFile = tempFolder.resolve("git_properties.json").toFile();
     try (OutputStream outputStream = new FileOutputStream(jsonFile)) {
       try (Writer myWriter = new OutputStreamWriter(outputStream, sourceCharset)) {
         myWriter.write("{");
@@ -78,16 +78,16 @@ public class TestJsonManager {
     Properties properties = JsonManager.readJsonProperties(jsonFile, sourceCharset);
 
     // then
-    Assert.assertEquals(2, properties.size());
-    Assert.assertEquals("beef4e92e9cabd043b105a14514289f331b40bf2", properties.getProperty("git.commit.id"));
-    Assert.assertEquals("beef4e9", properties.getProperty("git.commit.id.abbrev"));
+    Assertions.assertEquals(2, properties.size());
+    Assertions.assertEquals("beef4e92e9cabd043b105a14514289f331b40bf2", properties.getProperty("git.commit.id"));
+    Assertions.assertEquals("beef4e9", properties.getProperty("git.commit.id.abbrev"));
   }
 
   @Test
   public void testDumpWithFullGitProperty() throws Exception {
     // given
     Charset sourceCharset = StandardCharsets.UTF_8;
-    File jsonFile = tempFolder.newFile("git_properties.json");
+    File jsonFile = tempFolder.resolve("git_properties.json").toFile();
     OrderedProperties sortedLocalProperties = PropertiesFileGenerator.createOrderedProperties();
     sortedLocalProperties.setProperty("git.commit.id.full", "beef4e92e9cabd043b105a14514289f331b40bf2");
     sortedLocalProperties.setProperty("git.commit.id.abbrev", "beef4e9");
@@ -98,7 +98,7 @@ public class TestJsonManager {
     }
 
     // then
-    Assert.assertEquals(
+    Assertions.assertEquals(
             Arrays.asList(
                     "{",
                     "    \"git.commit.id.abbrev\": \"beef4e9\",",
@@ -112,7 +112,7 @@ public class TestJsonManager {
   public void testReadJsonPropertiesWithFullGitProperty() throws Exception {
     // given
     Charset sourceCharset = StandardCharsets.UTF_8;
-    File jsonFile = tempFolder.newFile("git_properties.json");
+    File jsonFile = tempFolder.resolve("git_properties.json").toFile();
     try (OutputStream outputStream = new FileOutputStream(jsonFile)) {
       try (Writer myWriter = new OutputStreamWriter(outputStream, sourceCharset)) {
         myWriter.write("{");
@@ -126,16 +126,16 @@ public class TestJsonManager {
     Properties properties = JsonManager.readJsonProperties(jsonFile, sourceCharset);
 
     // then
-    Assert.assertEquals(2, properties.size());
-    Assert.assertEquals("beef4e92e9cabd043b105a14514289f331b40bf2", properties.getProperty("git.commit.id.full"));
-    Assert.assertEquals("beef4e9", properties.getProperty("git.commit.id.abbrev"));
+    Assertions.assertEquals(2, properties.size());
+    Assertions.assertEquals("beef4e92e9cabd043b105a14514289f331b40bf2", properties.getProperty("git.commit.id.full"));
+    Assertions.assertEquals("beef4e9", properties.getProperty("git.commit.id.abbrev"));
   }
 
   @Test
   public void testDumpWithUnicode() throws Exception {
     // given
     Charset sourceCharset = StandardCharsets.UTF_8;
-    File jsonFile = tempFolder.newFile("git_properties.json");
+    File jsonFile = tempFolder.resolve("git_properties.json").toFile();
     OrderedProperties sortedLocalProperties = PropertiesFileGenerator.createOrderedProperties();
     sortedLocalProperties.setProperty("git.commit.user.name", "Александр Eliáš");
     sortedLocalProperties.setProperty("git.commit.message.full", "initial commit on test project with some special characters äöüàñ.");
@@ -146,7 +146,7 @@ public class TestJsonManager {
     }
 
     // then
-    Assert.assertEquals(
+    Assertions.assertEquals(
             Arrays.asList(
                     "{",
                     "    \"git.commit.message.full\": \"initial commit on test project with some special characters äöüàñ.\",",
@@ -160,7 +160,7 @@ public class TestJsonManager {
   public void testReadJsonPropertiesWithUnicode() throws Exception {
     // given
     Charset sourceCharset = StandardCharsets.UTF_8;
-    File jsonFile = tempFolder.newFile("git_properties.json");
+    File jsonFile = tempFolder.resolve("git_properties.json").toFile();
     try (OutputStream outputStream = new FileOutputStream(jsonFile)) {
       try (Writer myWriter = new OutputStreamWriter(outputStream, sourceCharset)) {
         myWriter.write("{");
@@ -174,9 +174,9 @@ public class TestJsonManager {
     Properties properties = JsonManager.readJsonProperties(jsonFile, sourceCharset);
 
     // then
-    Assert.assertEquals(2, properties.size());
-    Assert.assertEquals("Александр Eliáš", properties.getProperty("git.commit.user.name"));
-    Assert.assertEquals(
+    Assertions.assertEquals(2, properties.size());
+    Assertions.assertEquals("Александр Eliáš", properties.getProperty("git.commit.user.name"));
+    Assertions.assertEquals(
             "initial commit on test project with some special characters äöüàñ.",
             properties.getProperty("git.commit.message.full"));
   }

@@ -17,10 +17,8 @@
 
 package pl.project13.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -30,7 +28,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import org.junit.Test;
 
 public class ProcessHandlerTest {
   @FunctionalInterface
@@ -93,9 +90,15 @@ public class ProcessHandlerTest {
         int actualExitCode = processHandler.exitValue(5, TimeUnit.SECONDS);
         String stderr = processHandler.getStderr();
         // For troubleshooting include `stderr` in message, e.g. in case there is a compilation error
-        assertEquals("Process failed:\n" + stderr, exitCode, actualExitCode);
-        assertEquals(STDOUT_LINE + "1\n" + STDOUT_LINE + "2\n", stdoutBuilder.toString());
-        assertEquals(STDERR_LINE + "1\n" + STDERR_LINE + "2\n", stderr);
+        Assertions.assertEquals(
+            exitCode, actualExitCode,
+            "Process failed:\n" + stderr);
+        Assertions.assertEquals(
+            STDOUT_LINE + "1\n" + STDOUT_LINE + "2\n",
+            stdoutBuilder.toString());
+        Assertions.assertEquals(
+            STDERR_LINE + "1\n" + STDERR_LINE + "2\n",
+            stderr);
       }
     });
   }
@@ -112,9 +115,11 @@ public class ProcessHandlerTest {
         int actualExitCode = processHandler.exitValue(5, TimeUnit.SECONDS);
         String stderr = processHandler.getStderr();
         // For troubleshooting include `stderr` in message, e.g. in case there is a compilation error
-        assertEquals("Process failed:\n" + stderr, exitCode, actualExitCode);
-        assertNull(lastStdoutLine.get());
-        assertEquals("", stderr);
+        Assertions.assertEquals(
+            exitCode, actualExitCode,
+            "Process failed:\n" + stderr);
+        Assertions.assertNull(lastStdoutLine.get());
+        Assertions.assertEquals("", stderr);
       }
     });
   }
@@ -129,9 +134,13 @@ public class ProcessHandlerTest {
       StringBuilder stdoutBuilder = new StringBuilder();
       try (ProcessHandler processHandler = new ProcessHandler(process, outLine -> stdoutBuilder.append(outLine).append('\n'))) {
         int actualExitCode = processHandler.exitValue(5, TimeUnit.SECONDS);
-        assertEquals(exitCode, actualExitCode);
-        assertEquals(STDOUT_LINE + "1\n" + STDOUT_LINE + "2\n", stdoutBuilder.toString());
-        assertEquals(STDERR_LINE + "1\n" + STDERR_LINE + "2\n", processHandler.getStderr());
+        Assertions.assertEquals(exitCode, actualExitCode);
+        Assertions.assertEquals(
+            STDOUT_LINE + "1\n" + STDOUT_LINE + "2\n",
+            stdoutBuilder.toString());
+        Assertions.assertEquals(
+            STDERR_LINE + "1\n" + STDERR_LINE + "2\n",
+            processHandler.getStderr());
       }
     });
   }
@@ -146,8 +155,10 @@ public class ProcessHandlerTest {
       // Ignore stdout; it is not deterministic how many output has already been read
       Consumer<String> stdoutConsumer = line -> {};
       try (ProcessHandler processHandler = new ProcessHandler(process, stdoutConsumer)) {
-        assertThrows(TimeoutException.class, () -> processHandler.exitValue(1, TimeUnit.MILLISECONDS));
-        assertThrows(IllegalStateException.class, processHandler::getStderr);
+        Assertions.assertThrows(
+            TimeoutException.class, () -> processHandler.exitValue(1, TimeUnit.MILLISECONDS));
+        Assertions.assertThrows(
+            IllegalStateException.class, processHandler::getStderr);
       }
     });
   }
@@ -182,11 +193,13 @@ public class ProcessHandlerTest {
         int actualExitCode = processHandler.exitValue(5, TimeUnit.SECONDS);
         String stderr = processHandler.getStderr();
         // For troubleshooting include `stderr` in message, e.g. in case there is a compilation error
-        assertEquals("Process failed:\n" + stderr, exitCode, actualExitCode);
-        assertEquals(STDOUT_LINE + outputRepeatCount, lastStdoutLine.get());
+        Assertions.assertEquals(
+            exitCode, actualExitCode,
+            "Process failed:\n" + stderr);
+        Assertions.assertEquals(STDOUT_LINE + outputRepeatCount, lastStdoutLine.get());
 
-        assertTrue(stderr.startsWith(STDERR_LINE + 1));
-        assertTrue(stderr.endsWith(STDERR_LINE + outputRepeatCount + "\n"));
+        Assertions.assertTrue(stderr.startsWith(STDERR_LINE + 1));
+        Assertions.assertTrue(stderr.endsWith(STDERR_LINE + outputRepeatCount + "\n"));
       }
     });
   }

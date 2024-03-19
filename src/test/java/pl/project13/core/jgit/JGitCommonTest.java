@@ -17,7 +17,7 @@
 
 package pl.project13.core.jgit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import pl.project13.core.log.LogInterface;
 
 import static org.assertj.core.api.Assertions.assertThat;
