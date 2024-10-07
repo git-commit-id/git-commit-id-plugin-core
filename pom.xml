@@ -46,7 +46,7 @@
         -->
         <jgit.version>6.10.0.202406032230-r</jgit.version>
         <junit.version>5.10.3</junit.version>
-        <mockito.version>5.14.0</mockito.version>
+        <mockito.version>5.14.1</mockito.version>
         <assertj.version>3.26.3</assertj.version>
     </properties>
 
