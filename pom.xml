@@ -44,7 +44,7 @@
         https://github.com/eclipse-jgit/jgit/issues/28
         https://github.com/eclipse-jgit/jgit/issues/36
         -->
-        <jgit.version>6.10.0.202406032230-r</jgit.version>
+        <jgit.version>7.2.0.202503040940-r</jgit.version>
         <junit.version>5.12.2</junit.version>
         <mockito.version>5.17.0</mockito.version>
         <assertj.version>3.27.3</assertj.version>
