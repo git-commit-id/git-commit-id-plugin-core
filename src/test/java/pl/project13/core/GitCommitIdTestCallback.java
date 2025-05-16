@@ -18,6 +18,7 @@
 package pl.project13.core;
 
 import pl.project13.core.git.GitDescribeConfig;
+import pl.project13.core.log.DummyLogInterface;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.BuildFileChangeListener;
 
@@ -34,7 +35,7 @@ import java.util.function.Supplier;
 public class GitCommitIdTestCallback {
   private Map<String, String> systemEnv = System.getenv();
   private String projectVersion = "dummy-version";
-  private LogInterface logInterface = createDummyLogInterface();
+  private LogInterface logInterface = new DummyLogInterface();
   private String dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ";
   private String dateFormatTimeZone = TimeZone.getDefault().getID();
   private String prefixDot = "git.";
@@ -361,34 +362,5 @@ public class GitCommitIdTestCallback {
     gitDescribeConfig.setForceLongFormat(forceLongFormat);
     gitDescribeConfig.setAbbrev(abbrev);
     return gitDescribeConfig;
-  }
-
-  private LogInterface createDummyLogInterface() {
-    return new LogInterface() {
-      @Override
-      public void debug(String msg) {
-        // ignore
-      }
-
-      @Override
-      public void info(String msg) {
-        // ignore
-      }
-
-      @Override
-      public void warn(String msg) {
-        // ignore
-      }
-
-      @Override
-      public void error(String msg) {
-        // ignore
-      }
-
-      @Override
-      public void error(String msg, Throwable t) {
-        // ignore
-      }
-    };
   }
 }
