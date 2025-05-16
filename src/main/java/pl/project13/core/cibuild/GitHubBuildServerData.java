@@ -17,6 +17,7 @@
 
 package pl.project13.core.cibuild;
 
+import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
@@ -39,7 +40,9 @@ public class GitHubBuildServerData extends BuildServerDataProvider {
 
   @Override
   void loadBuildNumber(@Nonnull Properties properties) {
-    // This information is not reliably available on GitHub Actions
+    String buildNumber = env.getOrDefault("GITHUB_RUN_NUMBER", "");
+
+    maybePut(properties, GitCommitPropertyConstant.BUILD_NUMBER, () -> buildNumber);
   }
 
   @Override
