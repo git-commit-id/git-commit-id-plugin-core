@@ -108,14 +108,15 @@ public class GitCommitPropertyConstant {
    *
    * Currently supported CIs:
    * <ul>
+   *   <li>AWS CodeBuild</li>
+   *   <li>Azure DevOps</li>
    *   <li>Bamboo</li>
+   *   <li>Bitbucket Pipelines</li>
+   *   <li>GitHub Actions</li>
+   *   <li>Gitlab CI (Gitlab &gt;8.10 &amp; Gitlab CI &gt;0.5)</li>
    *   <li>Hudson/Jenkins</li>
    *   <li>TeamCity</li>
    *   <li>Travis</li>
-   *   <li>Gitlab CI (Gitlab &gt;8.10 &amp; Gitlab CI &gt;0.5)</li>
-   *   <li>Azure DevOps</li>
-   *   <li>AWS CodeBuild</li>
-   *   <li>Bitbucket Pipelines</li>
    * </ul>
    */
   public static final String BUILD_NUMBER = "build.number";
@@ -127,10 +128,11 @@ public class GitCommitPropertyConstant {
    *
    * Currently supported CIs:
    * <ul>
-   *     <li>TeamCity</li>
-   *     <li>Travis</li>
-   *     <li>Gitlab CI (Gitlab &gt;11.0)</li>
-   *     <li>AWS CodeBuild</li>
+   *   <li>AWS CodeBuild</li>
+   *   <li>Gitlab CI (Gitlab &gt;11.0)</li>
+   *   <li>GitHub Actions</li>
+   *   <li>TeamCity</li>
+   *   <li>Travis</li>
    * </ul>
    */
   public static final String BUILD_NUMBER_UNIQUE = "build.number.unique";

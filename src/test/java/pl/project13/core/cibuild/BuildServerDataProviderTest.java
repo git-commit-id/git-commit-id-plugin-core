@@ -49,23 +49,28 @@ class BuildServerDataProviderTest {
     @Test
     void shouldLoadBuildNumber() {
       Properties properties = new Properties();
-      Map<String, String> environment = Map.of("GITHUB_RUN_NUMBER", "123");
+      Map<String, String> environment = Map.of(
+          "GITHUB_RUN_ID", "1658821493",
+          "GITHUB_RUN_NUMBER", "123",
+          "GITHUB_RUN_ATTEMPT", "1");
       GitHubBuildServerData provider = new GitHubBuildServerData(new DummyLogInterface(), environment);
 
       provider.loadBuildNumber(properties);
 
-      assertThat(properties).containsEntry(GitCommitPropertyConstant.BUILD_NUMBER, "123");
+      assertThat(properties).containsEntry(GitCommitPropertyConstant.BUILD_NUMBER, "123.1");
+      assertThat(properties).containsEntry(GitCommitPropertyConstant.BUILD_NUMBER_UNIQUE, "1658821493.123.1");
     }
 
     @Test
-    void shouldLoadBuildNumberAsEmptyIfNotAvailable() {
+    void shouldLoadBuildNumberAsZerosIfNotAvailable() {
       Properties properties = new Properties();
       Map<String, String> environment = Map.of();
       GitHubBuildServerData provider = new GitHubBuildServerData(new DummyLogInterface(), environment);
 
       provider.loadBuildNumber(properties);
 
-      assertThat(properties).containsEntry(GitCommitPropertyConstant.BUILD_NUMBER, "");
+      assertThat(properties).containsEntry(GitCommitPropertyConstant.BUILD_NUMBER, "0.0");
+      assertThat(properties).containsEntry(GitCommitPropertyConstant.BUILD_NUMBER_UNIQUE, "0.0.0");
     }
 
     @Test
