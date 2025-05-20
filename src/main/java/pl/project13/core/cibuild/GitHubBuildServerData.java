@@ -17,6 +17,7 @@
 
 package pl.project13.core.cibuild;
 
+import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
@@ -39,7 +40,12 @@ public class GitHubBuildServerData extends BuildServerDataProvider {
 
   @Override
   void loadBuildNumber(@Nonnull Properties properties) {
-    // This information is not reliably available on GitHub Actions
+    String runId = env.getOrDefault("GITHUB_RUN_ID", "0");
+    String runNumber = env.getOrDefault("GITHUB_RUN_NUMBER", "0");
+    String runAttempt = env.getOrDefault("GITHUB_RUN_ATTEMPT", "0");
+
+    maybePut(properties, GitCommitPropertyConstant.BUILD_NUMBER, () -> String.join(".", runNumber, runAttempt));
+    maybePut(properties, GitCommitPropertyConstant.BUILD_NUMBER_UNIQUE, () -> String.join(".", runId, runNumber, runAttempt));
   }
 
   @Override
