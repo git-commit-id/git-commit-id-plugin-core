@@ -40,17 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
@@ -526,89 +516,72 @@ public class GitCommitIdPluginIntegrationTest {
       try (InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
         try (JsonReader jsonReader = Json.createReader(reader)) {
           JsonObject jsonObject = jsonReader.readObject();
-          buildTree(jsonObject.keySet());
+          validateNoPrefixConflicts(jsonObject.keySet());
         }
       }
     }
   }
 
-  class TreeNode {
-    String value;
-    private Set<TreeNode> children;
+  private static void validateNoPrefixConflicts(Set<String> keys) {
+    TreeNode root = new TreeNode();
+    Map<TreeNode, String> pathMap = new HashMap<>();
 
-    public TreeNode(String value) {
-      this.value = value;
-      this.children = new HashSet<>();
-    }
+    for (String key : keys) {
+      String[] parts = key.split("\\.");
+      TreeNode current = root;
+      StringBuilder pathBuilder = new StringBuilder();
 
-    public void addChild(TreeNode t) {
-      this.children.add(t);
-    }
-
-    @Override
-    public String toString() {
-      return "TreeNode{" +
-        "value='" + value + "'," +
-        "children=" + children +
-        "}";
-    }
-  }
-
-  class TreeLeave extends TreeNode {
-    public TreeLeave(String value) {
-      super(value);
-    }
-
-    @Override
-    public void addChild(TreeNode t) {
-      throw new IllegalStateException(
-        "Unexpected TreeLeave: Can not nest " + t.value + " under " + this.value);
-    }
-
-    @Override
-    public String toString() {
-      return "TreeLeave{" +
-        "value='" + value + "'}";
-    }
-  }
-
-  private TreeNode buildTree(Set<String> nodes) {
-    TreeNode root = new TreeNode("");
-
-    for (String node : nodes) {
-      TreeNode currentNode = root;
-      String[] keys = node.split("\\.");
-
-      for (int i = 0; i < keys.length; i++) {
-        String key = keys[i];
-
-        TreeNode child = findChild(currentNode, key);
-        if (i == keys.length - 1) {
-          if (child == null) {
-            child = new TreeLeave(key);
-          } else if (child instanceof TreeNode) {
-            throw new IllegalStateException(
-              "Unexpected TreeNode: Can not nest " + key + " under " + child.value);
-          }
-        } else {
-          if (child == null) {
-            child = new TreeNode(key);
-          }
+      for (int i = 0; i < parts.length; i++) {
+        String part = parts[i];
+        if (pathBuilder.length() > 0) {
+          pathBuilder.append(".");
         }
-        currentNode.addChild(child);
-        currentNode = child;
+        pathBuilder.append(part);
+
+        if (!current.children.containsKey(part)) {
+          current.children.put(part, new TreeNode());
+        }
+
+        current = current.children.get(part);
+        String currentPath = pathBuilder.toString();
+        pathMap.put(current, currentPath);
+
+        if (current.isLeaf && i < parts.length - 1) {
+          throw new IllegalArgumentException(
+                  "Key '" + key + "' attempts to nest under existing key '" + currentPath + "', which is already a value."
+          );
+        }
       }
+
+      if (!current.children.isEmpty()) {
+        String conflictingPath = findDeepestChildPath(current, pathMap);
+        throw new IllegalArgumentException(
+                "Key '" + key + "' is a value but conflicts with existing nested key '" + conflictingPath + "'."
+        );
+      }
+
+      current.isLeaf = true;
     }
-    return root;
   }
 
-  private TreeNode findChild(TreeNode node, String value) {
-    for (TreeNode child : node.children) {
-      if (child.value.equals(value)) {
-        return child;
+  private static String findDeepestChildPath(TreeNode node, Map<TreeNode, String> pathMap) {
+    Queue<TreeNode> queue = new LinkedList<>();
+    queue.add(node);
+
+    while (!queue.isEmpty()) {
+      TreeNode current = queue.poll();
+      if (current.isLeaf) {
+        return pathMap.get(current);
       }
+      queue.addAll(current.children.values());
     }
-    return null;
+
+    return pathMap.getOrDefault(node, "<unknown>");
+  }
+
+  static class TreeNode {
+    Map<String, TreeNode> children = new HashMap<>();
+    boolean isLeaf = false;
   }
 
   @ParameterizedTest
