@@ -84,35 +84,67 @@ public class JGitProvider extends GitDataProvider {
   @Override
   public void prepareGitToExtractMoreDetailedRepoInformation() throws GitCommitIdExecutionException {
     try {
-      // more details parsed out bellow
-      Ref evaluateOnCommitReference = git.findRef(evaluateOnCommit);
-      ObjectId evaluateOnCommitResolvedObjectId = git.resolve(evaluateOnCommit);
-
-      if ((evaluateOnCommitReference == null) && (evaluateOnCommitResolvedObjectId == null)) {
-        throw new GitCommitIdExecutionException(
-                "Could not get " + evaluateOnCommit + " Ref, are you sure you have set the dotGitDirectory " +
-                        "property of this plugin to a valid path (currently set to " + dotGitDirectory + ")?");
-      }
+      // more details parsed out below
       revWalk = new RevWalk(git);
-      ObjectId headObjectId;
-      if (evaluateOnCommitReference != null) {
-        headObjectId = evaluateOnCommitReference.getObjectId();
+      if (perModuleVersions && moduleBaseDir != null) {
+        evalCommit = getCommitFromModuleDirectory(moduleBaseDir);
       } else {
-        headObjectId = evaluateOnCommitResolvedObjectId;
+        evalCommit = getCommitFromRef();
       }
-
-      if (headObjectId == null) {
-        throw new GitCommitIdExecutionException(
-                "Could not get " + evaluateOnCommit + " Ref, are you sure you have some " +
-                        "commits in the dotGitDirectory (currently set to " + dotGitDirectory + ")?");
-      }
-      evalCommit = revWalk.parseCommit(headObjectId);
       revWalk.markStart(evalCommit);
     } catch (GitCommitIdExecutionException e) {
       throw e;
     } catch (Exception e) {
       throw new GitCommitIdExecutionException(e.getMessage(), e);
     }
+  }
+
+  private RevCommit getCommitFromModuleDirectory(File moduleBaseDir) throws GitAPIException, GitCommitIdExecutionException {
+    //retrieve last commit in folder moduleBaseDir
+    try (Git gitInstance = new Git(git)) {
+      String relativePath = git.getDirectory().getParentFile().toPath().relativize(moduleBaseDir.getAbsoluteFile().toPath()).toString();
+      Iterator<RevCommit> iterator = gitInstance.log()
+          .addPath(relativePath).call().iterator();
+      if (!iterator.hasNext()) {
+        throw new GitCommitIdExecutionException(
+                "Could not get commit from folder " + relativePath + " , are you sure you have some " +
+                        "commits in the folder " + moduleBaseDir + "?");
+      }
+
+      RevCommit revCommit = iterator.next();
+      if (revCommit == null) {
+        throw new GitCommitIdExecutionException(
+                "Could not get commit from folder " + relativePath +
+                " , are you sure you have some commits in the folder " + moduleBaseDir + "?");
+      }
+
+      return revCommit;
+    }
+  }
+
+  private RevCommit getCommitFromRef() throws IOException, GitCommitIdExecutionException {
+    // more details parsed out below
+    Ref evaluateOnCommitReference = git.findRef(evaluateOnCommit);
+    ObjectId evaluateOnCommitResolvedObjectId = git.resolve(evaluateOnCommit);
+
+    if ((evaluateOnCommitReference == null) && (evaluateOnCommitResolvedObjectId == null)) {
+      throw new GitCommitIdExecutionException(
+              "Could not get " + evaluateOnCommit + " Ref, are you sure you have set the dotGitDirectory " +
+              "property of this plugin to a valid path (currently set to " + dotGitDirectory + ")?");
+    }
+    ObjectId headObjectId;
+    if (evaluateOnCommitReference != null) {
+      headObjectId = evaluateOnCommitReference.getObjectId();
+    } else {
+      headObjectId = evaluateOnCommitResolvedObjectId;
+    }
+
+    if (headObjectId == null) {
+      throw new GitCommitIdExecutionException(
+                "Could not get " + evaluateOnCommit + " Ref, are you sure you have some " +
+                        "commits in the dotGitDirectory (currently set to " + dotGitDirectory + ")?");
+    }
+    return revWalk.parseCommit(headObjectId);
   }
 
   @Override
