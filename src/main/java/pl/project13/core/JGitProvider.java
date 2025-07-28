@@ -102,9 +102,16 @@ public class JGitProvider extends GitDataProvider {
   private RevCommit getCommitFromModuleDirectory(File moduleBaseDir) throws GitAPIException, GitCommitIdExecutionException {
     //retrieve last commit in folder moduleBaseDir
     try (Git gitInstance = new Git(git)) {
-      String relativePath = git.getDirectory().getParentFile().toPath().relativize(moduleBaseDir.getAbsoluteFile().toPath()).toString();
-      Iterator<RevCommit> iterator = gitInstance.log()
-          .addPath(relativePath).call().iterator();
+      String relativePath = git.getDirectory().getParentFile().getAbsoluteFile().toPath().relativize(moduleBaseDir.getAbsoluteFile().toPath()).toString();
+      Iterator<RevCommit> iterator;
+      if (relativePath.trim().isEmpty()) {
+        // if the relative path is empty, we are in the root of the repository
+        iterator = gitInstance.log().call().iterator();
+      } else {
+        // otherwise, we need to specify the path to get commits for that specific directory
+        iterator = gitInstance.log()
+            .addPath(relativePath).call().iterator();
+      }
       if (!iterator.hasNext()) {
         throw new GitCommitIdExecutionException(
                 "Could not get commit from folder " + relativePath + " , are you sure you have some " +
