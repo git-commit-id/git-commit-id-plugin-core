@@ -282,6 +282,22 @@ public class GitCommitIdPlugin {
     boolean shouldPropertiesEscapeUnicode();
 
     boolean shouldFailOnNoGitDirectory();
+
+    /**
+     * When set to {@code true}, the plugin will consider only commits affecting
+     * the folder containing this module.
+     * 
+     * When set to {@code false}, the plugin will consider all commits in the
+     * repository.
+     *
+     * @return Controls whether the plugin only considers commits in the current module's directory.
+     */
+    boolean getPerModuleVersions();
+
+    /**
+     * @return Base directory (folder) of the current module.
+     */
+    File getModuleBaseDir();
   }
 
   protected static final Pattern allowedCharactersForEvaluateOnCommit = Pattern.compile("[a-zA-Z0-9\\_\\-\\^\\/\\.]+");
@@ -367,6 +383,9 @@ public class GitCommitIdPlugin {
       @Nonnull Callback cb,
       @Nonnull File dotGitDirectory,
       @Nonnull Properties properties) throws GitCommitIdExecutionException {
+    if (cb.getPerModuleVersions()) {
+      throw new GitCommitIdExecutionException("The native git provider does not support per module versions.");
+    }
     GitDataProvider nativeGitProvider = NativeGitProvider
             .on(dotGitDirectory, cb.getNativeGitTimeoutInMs(), cb.getLogInterface())
             .setPrefixDot(cb.getPrefixDot())
@@ -378,6 +397,7 @@ public class GitCommitIdPlugin {
             .setUseBranchNameFromBuildEnvironment(cb.getUseBranchNameFromBuildEnvironment())
             .setExcludeProperties(cb.getExcludeProperties())
             .setIncludeOnlyProperties(cb.getIncludeOnlyProperties())
+            .setModuleBaseDir(cb.getModuleBaseDir())
             .setOffline(cb.isOffline());
 
     nativeGitProvider.loadGitData(cb.getEvaluateOnCommit(), cb.getSystemEnv(), properties);
@@ -398,6 +418,8 @@ public class GitCommitIdPlugin {
             .setUseBranchNameFromBuildEnvironment(cb.getUseBranchNameFromBuildEnvironment())
             .setExcludeProperties(cb.getExcludeProperties())
             .setIncludeOnlyProperties(cb.getIncludeOnlyProperties())
+            .setPerModuleVersions(cb.getPerModuleVersions()) 
+            .setModuleBaseDir(cb.getModuleBaseDir())
             .setOffline(cb.isOffline());
 
     jGitProvider.loadGitData(cb.getEvaluateOnCommit(), cb.getSystemEnv(), properties);

@@ -24,6 +24,8 @@ import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.PropertyManager;
 
 import javax.annotation.Nonnull;
+
+import java.io.File;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -107,6 +109,20 @@ public abstract class GitDataProvider implements GitProvider {
    * inclusion rule that applies for multiple properties and then exclude a subset of them).
    */
   protected List<String> includeOnlyProperties;
+
+  /**
+   * When set to {@code true}, the plugin will consider only commits affecting
+   * the folder containing this module.
+   * 
+   * When set to {@code false}, the plugin will consider all commits in the
+   * repository.
+   */
+  protected boolean perModuleVersions = false;
+
+  /**
+   * The directory containing this project.
+   */
+  protected File moduleBaseDir;
 
   /**
    * When set to {@code true}, the plugin will not try to contact any remote repositories.
@@ -239,6 +255,31 @@ public abstract class GitDataProvider implements GitProvider {
    */
   public GitDataProvider setOffline(boolean offline) {
     this.offline = offline;
+    return this;
+  }
+
+  /**
+   * When set to {@code true}, the plugin will consider only commits affecting
+   * the folder containing this module.
+   * 
+   * When set to {@code false}, the plugin will consider all commits in the
+   * repository.
+   * @param perModuleVersions Only consider commits affecting the folder containing this module.
+   * @return The {@code GitProvider} with the corresponding {@code perModuleVersions} flag set.
+   */
+  public GitDataProvider setPerModuleVersions(boolean perModuleVersions) {
+    this.perModuleVersions = perModuleVersions;
+    return this;
+  }
+
+  /**
+   * Path to the module base directory.
+   *
+   * @param moduleBaseDir The path to the directory containing this module.
+   * @return The {@code GitProvider} with the corresponding {@code moduleBaseDir} set.
+   */
+  public GitDataProvider setModuleBaseDir(File moduleBaseDir) {
+    this.moduleBaseDir = moduleBaseDir;
     return this;
   }
 
