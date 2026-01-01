@@ -59,6 +59,8 @@ public class GitCommitIdTestCallback {
   private Charset propertiesSourceCharset = StandardCharsets.UTF_8;
   private boolean shouldPropertiesEscapeUnicode = false;
   private boolean shouldFailOnNoGitDirectory = false;
+  private boolean perModuleVersions = false;
+  private File moduleBaseDir;
 
   public GitCommitIdTestCallback() {
     try {
@@ -197,6 +199,16 @@ public class GitCommitIdTestCallback {
 
   public GitCommitIdTestCallback setShouldFailOnNoGitDirectory(boolean shouldFailOnNoGitDirectory) {
     this.shouldFailOnNoGitDirectory = shouldFailOnNoGitDirectory;
+    return this;
+  }
+
+  public GitCommitIdTestCallback setPerModuleVersions(boolean perModuleVersions) {
+    this.perModuleVersions = perModuleVersions;
+    return this;
+  }
+
+  public GitCommitIdTestCallback setModuleBaseDir(File moduleBaseDir) {
+    this.moduleBaseDir = moduleBaseDir;
     return this;
   }
 
@@ -352,6 +364,16 @@ public class GitCommitIdTestCallback {
       @Override
       public boolean shouldFailOnNoGitDirectory() {
         return shouldFailOnNoGitDirectory;
+      }
+
+      @Override
+      public boolean getPerModuleVersions() {
+        return perModuleVersions;
+      }
+
+      @Override
+      public File getModuleBaseDir() {
+        return moduleBaseDir;
       }
     };
   }
