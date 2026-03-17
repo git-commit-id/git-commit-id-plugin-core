@@ -383,9 +383,6 @@ public class GitCommitIdPlugin {
       @Nonnull Callback cb,
       @Nonnull File dotGitDirectory,
       @Nonnull Properties properties) throws GitCommitIdExecutionException {
-    if (cb.getPerModuleVersions()) {
-      throw new GitCommitIdExecutionException("The native git provider does not support per module versions.");
-    }
     GitDataProvider nativeGitProvider = NativeGitProvider
             .on(dotGitDirectory, cb.getNativeGitTimeoutInMs(), cb.getLogInterface())
             .setPrefixDot(cb.getPrefixDot())
@@ -397,6 +394,7 @@ public class GitCommitIdPlugin {
             .setUseBranchNameFromBuildEnvironment(cb.getUseBranchNameFromBuildEnvironment())
             .setExcludeProperties(cb.getExcludeProperties())
             .setIncludeOnlyProperties(cb.getIncludeOnlyProperties())
+            .setPerModuleVersions(cb.getPerModuleVersions()) 
             .setModuleBaseDir(cb.getModuleBaseDir())
             .setOffline(cb.isOffline());
 

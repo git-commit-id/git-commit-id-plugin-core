@@ -43,6 +43,8 @@ public class NativeGitProvider extends GitDataProvider {
 
   final File canonical;
 
+  private String moduleRelativePath;
+
   @Nonnull
   public static NativeGitProvider on(@Nonnull File dotGitDirectory, long nativeGitTimeoutInMs, @Nonnull LogInterface log) {
     return new NativeGitProvider(dotGitDirectory, nativeGitTimeoutInMs, log);
@@ -90,6 +92,19 @@ public class NativeGitProvider extends GitDataProvider {
 
   @Override
   public void prepareGitToExtractMoreDetailedRepoInformation() throws GitCommitIdExecutionException {
+    if (perModuleVersions && moduleBaseDir != null) {
+      // For per-module versions, we need to determine the relative path of the module
+      // This will be used in git commands with the -- pathspec limiter
+      try {
+        File gitRoot = canonical.getParentFile();
+        String relativePath = gitRoot.getAbsoluteFile().toPath()
+            .relativize(moduleBaseDir.getAbsoluteFile().toPath()).toString();
+        // Store the relative path for use in git commands
+        this.moduleRelativePath = relativePath.isEmpty() ? null : relativePath;
+      } catch (Exception e) {
+        throw new GitCommitIdExecutionException("Unable to compute module relative path", e);
+      }
+    }
   }
 
   @Override
@@ -196,15 +211,16 @@ public class NativeGitProvider extends GitDataProvider {
   @Override
   public String getCommitId() throws GitCommitIdExecutionException {
     boolean evaluateOnCommitIsSet = evalCommitIsNotHead();
+    String pathspec = moduleRelativePath != null ? " -- " + moduleRelativePath : "";
     if (evaluateOnCommitIsSet) {
       // if evaluateOnCommit represents a tag we need to perform the rev-parse on the actual commit reference
       // in case evaluateOnCommit is not a reference rev-list will just return the argument given
       // and thus it's always safe(r) to unwrap it
       // however when evaluateOnCommit is not set we don't want to waste calls to the native binary
-      String actualCommitId = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list -n 1 " + evaluateOnCommit);
+      String actualCommitId = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list -n 1 " + evaluateOnCommit + pathspec);
       return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-parse " + actualCommitId);
     } else {
-      return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-parse HEAD");
+      return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-parse HEAD" + pathspec);
     }
   }
 
@@ -224,7 +240,8 @@ public class NativeGitProvider extends GitDataProvider {
 
   @Override
   public boolean isDirty() throws GitCommitIdExecutionException {
-    return !tryCheckEmptyRunGitCommand(canonical, nativeGitTimeoutInMs, "status -s");
+    String pathspec = moduleRelativePath != null ? " -- " + moduleRelativePath : "";
+    return !tryCheckEmptyRunGitCommand(canonical, nativeGitTimeoutInMs, "status -s" + pathspec);
   }
 
   @Override
@@ -311,14 +328,16 @@ public class NativeGitProvider extends GitDataProvider {
   public String getClosestTagCommitCount() throws GitCommitIdExecutionException {
     String closestTagName = getClosestTagName();
     if (closestTagName != null && !closestTagName.trim().isEmpty()) {
-      return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list " + closestTagName + ".." + evaluateOnCommit + " --count");
+      String pathspec = moduleRelativePath != null ? " -- " + moduleRelativePath : "";
+      return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list " + closestTagName + ".." + evaluateOnCommit + " --count" + pathspec);
     }
     return "";
   }
 
   @Override
   public String getTotalCommitCount() throws GitCommitIdExecutionException {
-    return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list " + evaluateOnCommit + " --count");
+    String pathspec = moduleRelativePath != null ? " -- " + moduleRelativePath : "";
+    return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list " + evaluateOnCommit + " --count" + pathspec);
   }
 
   @Override
