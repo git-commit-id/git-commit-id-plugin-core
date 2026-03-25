@@ -1743,6 +1743,62 @@ public class GitCommitIdPluginIntegrationTest {
     Assertions.assertFalse(p.matcher("&&cat /etc/passwd").matches());
   }
 
+  @Test
+  public void shouldGiveCommitIdForEachFolderWhenPerModuleVersionsEnabled() throws Exception {
+    // given
+    File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.GIT_COMMIT_ID);
+
+    GitCommitIdPlugin.Callback cbSrc =
+            new GitCommitIdTestCallback()
+                    .setDotGitDirectory(dotGitDirectory)
+                    .setUseNativeGit(false)
+                    .setPerModuleVersions(true)
+                    .setModuleBaseDir(dotGitDirectory.getParentFile().toPath().resolve("src").toFile())
+                    .build();
+    Properties propertiesSrcFolder = new Properties();
+
+    GitCommitIdPlugin.Callback cbSrcTest =
+            new GitCommitIdTestCallback()
+                    .setDotGitDirectory(dotGitDirectory)
+                    .setUseNativeGit(false)
+                    .setPerModuleVersions(true)
+                    .setModuleBaseDir(dotGitDirectory.getParentFile().toPath().resolve("src/test").toFile())
+                    .build();
+    Properties propertiesSrcTestFolder = new Properties();
+
+    GitCommitIdPlugin.Callback cbSrcNative =
+            new GitCommitIdTestCallback()
+                    .setDotGitDirectory(dotGitDirectory)
+                    .setUseNativeGit(true)
+                    .setPerModuleVersions(true)
+                    .setModuleBaseDir(dotGitDirectory.getParentFile().toPath().resolve("src").toFile())
+                    .build();
+    Properties propertiesSrcFolderNative = new Properties();
+
+    GitCommitIdPlugin.Callback cbSrcTestNative =
+            new GitCommitIdTestCallback()
+                    .setDotGitDirectory(dotGitDirectory)
+                    .setUseNativeGit(true)
+                    .setPerModuleVersions(true)
+                    .setModuleBaseDir(dotGitDirectory.getParentFile().toPath().resolve("src/test").toFile())
+                    .build();
+    Properties propertiesSrcTestFolderNative = new Properties();
+
+    // when
+    GitCommitIdPlugin.runPlugin(cbSrc, propertiesSrcFolder);
+    GitCommitIdPlugin.runPlugin(cbSrcTest, propertiesSrcTestFolder);
+    GitCommitIdPlugin.runPlugin(cbSrcNative, propertiesSrcFolderNative);
+    GitCommitIdPlugin.runPlugin(cbSrcTestNative, propertiesSrcTestFolderNative);
+
+    // then
+    assertThat(propertiesSrcFolder).containsKey("git.commit.id");
+    assertThat(propertiesSrcTestFolder).containsKey("git.commit.id");
+    assertThat(propertiesSrcFolder.getProperty("git.commit.id")).isNotEqualTo(propertiesSrcTestFolder.getProperty("git.commit.id"));
+    assertThat(propertiesSrcFolderNative).containsKey("git.commit.id");
+    assertThat(propertiesSrcTestFolderNative).containsKey("git.commit.id");
+    assertThat(propertiesSrcFolderNative.getProperty("git.commit.id")).isNotEqualTo(propertiesSrcTestFolderNative.getProperty("git.commit.id"));
+  }
+
   private GitDescribeConfig createGitDescribeConfig(boolean forceLongFormat, int abbrev) {
     GitDescribeConfig gitDescribeConfig = new GitDescribeConfig();
     gitDescribeConfig.setTags(true);
