@@ -116,6 +116,15 @@ public enum AvailableGitTestRepo {
     * </pre>
     */
   WITH_THREE_COMMITS_AND_TWO_TAGS_CURRENTLY_ON_COMMIT_WITHOUT_TAG("src/test/resources/_git_three_commits_and_two_tags_currently_on_commit_without_tag"),
+  /**
+   * <pre>
+   * 4862e42508099d359d791269f3735baff36d9102 a change in the root pom  (HEAD, master)
+   * 2b91f8b730121f66a833f771cb7241919fed5917 a change in submodule-two
+   * 8e88956d45d57725463550f4406a54d12a46ae78 a change in submodule-one
+   * 9c5d2e13d042b0acb71c48232a9c408e42da87f7 new repo for testing (based on git-commit-id-maven-debugging)
+   * </pre>
+   */
+  WITH_SUBMODULES_AND_MULTIPLE_COMMITS("src/test/resources/_git_with_submodules_and_multiple_commits"),
   // TODO: Why do the tests get stuck when we use .git??
   MAVEN_GIT_COMMIT_ID_PLUGIN("src/test/resources/_git_one_commit_with_umlaut")
   ;

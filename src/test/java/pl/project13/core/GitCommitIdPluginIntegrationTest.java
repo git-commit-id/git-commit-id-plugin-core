@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.util.GenericFileManager;
@@ -43,17 +44,16 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GitCommitIdPluginIntegrationTest {
-  public static Collection<?> useNativeGit() {
-    return asList(true, false);
-  }
-
-  public static Collection<?> useDirty() {
-    return asList(true, false);
+  public static Stream<Arguments> useNativeGit() {
+    return Stream.of(
+            Arguments.of(true),
+            Arguments.of(false)
+    );
   }
 
   private Path sandbox;
@@ -1743,38 +1743,48 @@ public class GitCommitIdPluginIntegrationTest {
     Assertions.assertFalse(p.matcher("&&cat /etc/passwd").matches());
   }
 
+  static Stream<Arguments> useNativeGitWithSubmoduleName() {
+    return useNativeGit().flatMap(arg ->
+      Stream.of(
+        "submodule-one",
+        "submodule-two"
+      ).map(str ->
+        Arguments.of(arg.get()[0], str)
+      )
+    );
+  }
+
   @ParameterizedTest
-  @MethodSource("useNativeGit")
-  public void shouldGiveCommitIdForEachFolderWhenPerModuleVersionsEnabled(boolean useNativeGit) throws Exception {
+  @MethodSource("useNativeGitWithSubmoduleName")
+  public void shouldGiveCommitIdForEachFolderWhenPerModuleVersionsEnabled(boolean useNativeGit, String submoduleName) throws Exception {
     // given
-    File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.GIT_COMMIT_ID);
+    File dotGitDirectory = createTmpDotGitDirectory(AvailableGitTestRepo.WITH_SUBMODULES_AND_MULTIPLE_COMMITS);
 
-    GitCommitIdPlugin.Callback cbSrc =
+    GitCommitIdPlugin.Callback cb =
             new GitCommitIdTestCallback()
                     .setDotGitDirectory(dotGitDirectory)
                     .setUseNativeGit(useNativeGit)
                     .setPerModuleVersions(true)
-                    .setModuleBaseDir(dotGitDirectory.getParentFile().toPath().resolve("src").toFile())
+                    .setModuleBaseDir(dotGitDirectory.getParentFile().toPath().resolve(submoduleName).toFile())
                     .build();
-    Properties propertiesSrcFolder = new Properties();
-
-    GitCommitIdPlugin.Callback cbSrcTest =
-            new GitCommitIdTestCallback()
-                    .setDotGitDirectory(dotGitDirectory)
-                    .setUseNativeGit(useNativeGit)
-                    .setPerModuleVersions(true)
-                    .setModuleBaseDir(dotGitDirectory.getParentFile().toPath().resolve("src/test").toFile())
-                    .build();
-    Properties propertiesSrcTestFolder = new Properties();
+    Properties properties = new Properties();
 
     // when
-    GitCommitIdPlugin.runPlugin(cbSrc, propertiesSrcFolder);
-    GitCommitIdPlugin.runPlugin(cbSrcTest, propertiesSrcTestFolder);
+    GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(propertiesSrcFolder).containsKey("git.commit.id");
-    assertThat(propertiesSrcTestFolder).containsKey("git.commit.id");
-    assertThat(propertiesSrcFolder.getProperty("git.commit.id")).isNotEqualTo(propertiesSrcTestFolder.getProperty("git.commit.id"));
+    assertThat(properties).containsKey("git.commit.id");
+
+    String expectedGitCommitId = null;
+    if (submoduleName.equals("submodule-one")) {
+      expectedGitCommitId = "8e88956d45d57725463550f4406a54d12a46ae78";
+    } else if (submoduleName.equals("submodule-two")) {
+      expectedGitCommitId = "2b91f8b730121f66a833f771cb7241919fed5917";
+    }
+    assertThat(expectedGitCommitId).isNotNull();
+    assertThat(properties.getProperty("git.commit.id"))
+            .as("useNativeGit=%s", useNativeGit)
+            .isEqualTo(expectedGitCommitId);
   }
 
   private GitDescribeConfig createGitDescribeConfig(boolean forceLongFormat, int abbrev) {
