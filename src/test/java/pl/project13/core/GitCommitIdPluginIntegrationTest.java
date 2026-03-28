@@ -1765,6 +1765,7 @@ public class GitCommitIdPluginIntegrationTest {
                     .setDotGitDirectory(dotGitDirectory)
                     .setUseNativeGit(useNativeGit)
                     .setPerModuleVersions(true)
+                    .setDateFormatTimeZone("CET")
                     .setProjectBaseDir(dotGitDirectory.getParentFile().toPath().resolve(submoduleName).toFile())
                     .build();
     Properties properties = new Properties();
