@@ -24,8 +24,6 @@ import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.PropertyManager;
 
 import javax.annotation.Nonnull;
-
-import java.io.File;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -111,26 +109,18 @@ public abstract class GitDataProvider implements GitProvider {
   protected List<String> includeOnlyProperties;
 
   /**
-   * When set to {@code true}, the plugin will consider only commits affecting
-   * the folder containing this module.
-   * 
-   * When set to {@code false}, the plugin will consider all commits in the
-   * repository.
-   */
-  protected boolean perModuleVersions = false;
-
-  /**
-   * The directory containing this project.
-   */
-  protected File moduleBaseDir;
-
-  /**
    * When set to {@code true}, the plugin will not try to contact any remote repositories.
    * Any operations will only use the local state of the repo.
    * If set to {@code false}, it will execute {@code git fetch} operations e.g. to determine the
    * {@code ahead} and {@code behind} branch information.
    */
   protected boolean offline;
+
+  /**
+   * Optional path filter to limit certain computations (e.g. total commit count) to commits
+   * affecting a specific path.
+   */
+  protected String pathFilter;
 
   /**
    * Constructor to encapsulates all references required to dertermine all git-data.
@@ -259,27 +249,13 @@ public abstract class GitDataProvider implements GitProvider {
   }
 
   /**
-   * When set to {@code true}, the plugin will consider only commits affecting
-   * the folder containing this module.
-   * 
-   * When set to {@code false}, the plugin will consider all commits in the
-   * repository.
-   * @param perModuleVersions Only consider commits affecting the folder containing this module.
-   * @return The {@code GitProvider} with the corresponding {@code perModuleVersions} flag set.
-   */
-  public GitDataProvider setPerModuleVersions(boolean perModuleVersions) {
-    this.perModuleVersions = perModuleVersions;
-    return this;
-  }
-
-  /**
-   * Path to the module base directory.
+   * Sets an optional path filter.
    *
-   * @param moduleBaseDir The path to the directory containing this module.
-   * @return The {@code GitProvider} with the corresponding {@code moduleBaseDir} set.
+   * @param pathFilter path relative to repository root using forward slashes (git-style)
+   * @return The {@code GitProvider} with the corresponding path filter set.
    */
-  public GitDataProvider setModuleBaseDir(File moduleBaseDir) {
-    this.moduleBaseDir = moduleBaseDir;
+  public GitDataProvider setPathFilter(String pathFilter) {
+    this.pathFilter = pathFilter;
     return this;
   }
 

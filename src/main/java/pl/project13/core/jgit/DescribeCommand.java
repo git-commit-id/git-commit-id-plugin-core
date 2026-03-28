@@ -17,6 +17,7 @@
 
 package pl.project13.core.jgit;
 
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
@@ -30,6 +31,7 @@ import pl.project13.core.util.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -40,6 +42,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   private LogInterface log;
   private JGitCommon jGitCommon;
   private String evaluateOnCommit;
+  private String pathFilter;
 
   //  TODO not yet implemented options:
   //  private boolean containsFlag = false;
@@ -83,7 +86,12 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    */
   @Nonnull
   public static DescribeCommand on(String evaluateOnCommit, Repository repo, LogInterface log) {
-    return new DescribeCommand(evaluateOnCommit, repo, log);
+    return new DescribeCommand(evaluateOnCommit, repo, log, null);
+  }
+
+  @Nonnull
+  public static DescribeCommand on(String evaluateOnCommit, Repository repo, LogInterface log, String pathFilter) {
+    return new DescribeCommand(evaluateOnCommit, repo, log, pathFilter);
   }
 
   /**
@@ -94,11 +102,12 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param log logger bridge to direct logs to
    * @return itself with the options set as specified by the arguments to allow fluent configuration
    */
-  private DescribeCommand(@Nonnull String evaluateOnCommit, @Nonnull Repository repo, @Nonnull LogInterface log) {
+  private DescribeCommand(@Nonnull String evaluateOnCommit, @Nonnull Repository repo, @Nonnull LogInterface log, String pathFilter) {
     super(repo);
     this.evaluateOnCommit = evaluateOnCommit;
     this.jGitCommon = new JGitCommon(log);
     this.log = log;
+    this.pathFilter = pathFilter;
   }
 
   /**
@@ -272,12 +281,26 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
     // needed for abbrev id's calculation
     ObjectReader objectReader = repo.newObjectReader();
 
+    // Handle path filter - find latest commit for the path if needed
+    String actualEvaluateOnCommit = evaluateOnCommit;
+    if (pathFilter != null && !pathFilter.isEmpty()) {
+      try {
+        String latestCommitForPath = findLatestCommitForPath(pathFilter);
+        if (latestCommitForPath != null && !latestCommitForPath.isEmpty()) {
+          actualEvaluateOnCommit = latestCommitForPath;
+          log.info("Using latest commit for path '" + pathFilter + "': " + latestCommitForPath);
+        }
+      } catch (Exception e) {
+        log.warn("Failed to find latest commit for path: " + pathFilter + ", falling back to normal behavior");
+      }
+    }
+
     // get tags
     String matchPattern = createMatchPattern();
     Map<ObjectId, List<String>> tagObjectIdToName = jGitCommon.findTagObjectIds(repo, tagsFlag, matchPattern);
 
     // get current commit
-    RevCommit evalCommit = findEvalCommitObjectId(evaluateOnCommit, repo);
+    RevCommit evalCommit = findEvalCommitObjectId(actualEvaluateOnCommit, repo);
     ObjectId evalCommitId = evalCommit.getId();
 
     // check if dirty
@@ -360,7 +383,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
 
   // Visible for testing
   boolean findDirtyState(Repository repo) throws GitAPIException {
-    return JGitCommon.isRepositoryInDirtyState(repo);
+    return JGitCommon.isRepositoryInDirtyState(repo, pathFilter);
   }
 
   // Visible for testing
@@ -370,6 +393,32 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
 
   RevCommit findEvalCommitObjectId(@Nonnull String evaluateOnCommit, @Nonnull Repository repo) throws RuntimeException {
     return jGitCommon.findEvalCommitObjectId(evaluateOnCommit, repo);
+  }
+
+  /**
+   * Finds the latest commit that touched the specified path.
+   * Returns the commit hash or null if no commits found.
+   */
+  @Nullable
+  private String findLatestCommitForPath(@Nonnull String path) throws GitAPIException, IOException {
+    ObjectId start = repo.resolve(evaluateOnCommit);
+    if (start == null) {
+      return null;
+    }
+
+    try (Git git = Git.wrap(repo)) {
+      Iterable<RevCommit> commits = git.log()
+          .add(start)
+          .addPath(path)
+          .setMaxCount(1)
+          .call();
+
+      Iterator<RevCommit> it = commits.iterator();
+      if (it.hasNext()) {
+        return it.next().getName();
+      }
+    }
+    return null;
   }
 
   private String createMatchPattern() {

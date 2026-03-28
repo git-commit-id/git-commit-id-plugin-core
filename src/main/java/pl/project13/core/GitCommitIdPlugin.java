@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
@@ -284,20 +285,14 @@ public class GitCommitIdPlugin {
     boolean shouldFailOnNoGitDirectory();
 
     /**
-     * When set to {@code true}, the plugin will consider only commits affecting
-     * the folder containing this module.
-     * 
-     * When set to {@code false}, the plugin will consider all commits in the
-     * repository.
+     * When set to {@code true}, the plugin will only consider commits affecting
+     * paths within the current project's base directory.
      *
-     * @return Controls whether the plugin only considers commits in the current module's directory.
+     * <p>This is useful for multi-module projects stored in a single git repository where you want
+     + properties like {@code git.commit.id.*} and {@code git.total.commit.count} to be based on the
+     + latest commit that touched this module, not the whole repository.
      */
-    boolean getPerModuleVersions();
-
-    /**
-     * @return Base directory (folder) of the current module.
-     */
-    File getModuleBaseDir();
+    boolean isPerModuleVersions();
   }
 
   protected static final Pattern allowedCharactersForEvaluateOnCommit = Pattern.compile("[a-zA-Z0-9\\_\\-\\^\\/\\.]+");
@@ -384,19 +379,9 @@ public class GitCommitIdPlugin {
       @Nonnull File dotGitDirectory,
       @Nonnull Properties properties) throws GitCommitIdExecutionException {
     GitDataProvider nativeGitProvider = NativeGitProvider
-            .on(dotGitDirectory, cb.getNativeGitTimeoutInMs(), cb.getLogInterface())
-            .setPrefixDot(cb.getPrefixDot())
-            .setAbbrevLength(cb.getAbbrevLength())
-            .setDateFormat(cb.getDateFormat())
-            .setDateFormatTimeZone(cb.getDateFormatTimeZone())
-            .setGitDescribe(cb.getGitDescribe())
-            .setCommitIdGenerationMode(cb.getCommitIdGenerationMode())
-            .setUseBranchNameFromBuildEnvironment(cb.getUseBranchNameFromBuildEnvironment())
-            .setExcludeProperties(cb.getExcludeProperties())
-            .setIncludeOnlyProperties(cb.getIncludeOnlyProperties())
-            .setPerModuleVersions(cb.getPerModuleVersions()) 
-            .setModuleBaseDir(cb.getModuleBaseDir())
-            .setOffline(cb.isOffline());
+            .on(dotGitDirectory, cb.getNativeGitTimeoutInMs(), cb.getLogInterface());
+
+    configureCommonProvider(nativeGitProvider, cb, dotGitDirectory);
 
     nativeGitProvider.loadGitData(cb.getEvaluateOnCommit(), cb.getSystemEnv(), properties);
   }
@@ -406,7 +391,18 @@ public class GitCommitIdPlugin {
       @Nonnull File dotGitDirectory,
       @Nonnull Properties properties) throws GitCommitIdExecutionException {
     GitDataProvider jGitProvider = JGitProvider
-            .on(dotGitDirectory, cb.getLogInterface())
+            .on(dotGitDirectory, cb.getLogInterface());
+
+    configureCommonProvider(jGitProvider, cb, dotGitDirectory);
+
+    jGitProvider.loadGitData(cb.getEvaluateOnCommit(), cb.getSystemEnv(), properties);
+  }
+
+  private static void configureCommonProvider(
+      @Nonnull GitDataProvider provider,
+      @Nonnull Callback cb,
+      @Nonnull File dotGitDirectory) {
+    provider
             .setPrefixDot(cb.getPrefixDot())
             .setAbbrevLength(cb.getAbbrevLength())
             .setDateFormat(cb.getDateFormat())
@@ -416,10 +412,57 @@ public class GitCommitIdPlugin {
             .setUseBranchNameFromBuildEnvironment(cb.getUseBranchNameFromBuildEnvironment())
             .setExcludeProperties(cb.getExcludeProperties())
             .setIncludeOnlyProperties(cb.getIncludeOnlyProperties())
-            .setPerModuleVersions(cb.getPerModuleVersions()) 
-            .setModuleBaseDir(cb.getModuleBaseDir())
-            .setOffline(cb.isOffline());
+            .setOffline(cb.isOffline())
+            .setPathFilter(
+                    cb.isPerModuleVersions()
+                            ? resolveRelativeModulePath(cb, dotGitDirectory)
+                            : null);
+  }
 
-    jGitProvider.loadGitData(cb.getEvaluateOnCommit(), cb.getSystemEnv(), properties);
+  /**
+   * Resolves the relative module path from repository root to project base directory.
+   * This is used for per-module filtering to limit git operations to the current project.
+   * Returns null if the project directory is not within the repository or if resolution fails.
+   */
+  @Nullable
+  private static String resolveRelativeModulePath(@Nonnull Callback cb, @Nonnull File dotGitDirectory) {
+    try {
+      // Determine repository work tree
+      // If dotGitDirectory is named ".git", the work tree is its parent
+      // Otherwise, dotGitDirectory might be the work tree itself (for bare repos or special cases)
+      File repoWorkTree;
+      if (dotGitDirectory.getName().equals(".git")) {
+        repoWorkTree = dotGitDirectory.getParentFile();
+      } else {
+        repoWorkTree = dotGitDirectory;
+      }
+
+      if (repoWorkTree == null || !repoWorkTree.exists()) {
+        cb.getLogInterface().warn("Could not determine repository work tree from dotGitDirectory: " + dotGitDirectory);
+        return null;
+      }
+
+      Path repoRoot = repoWorkTree.toPath().toAbsolutePath().normalize();
+      Path moduleDir = cb.getProjectBaseDir().toPath().toAbsolutePath().normalize();
+
+      if (!moduleDir.startsWith(repoRoot)) {
+        cb.getLogInterface()
+            .warn("Project directory is not within repository work tree. " +
+                   "Project: " + moduleDir + ", Repo: " + repoRoot + ". " +
+                   "Falling back to normal behavior.");
+        return null;
+      }
+
+      String relative = repoRoot.relativize(moduleDir).toString();
+      if (relative.isEmpty()) {
+        relative = ".";
+      }
+      return relative.replace(File.separatorChar, '/');
+    } catch (Exception e) {
+      cb.getLogInterface()
+          .warn("Failed to resolve relative module path: " + e.getMessage() + 
+                ". Falling back to normal behavior.");
+      return null;
+    }
   }
 }

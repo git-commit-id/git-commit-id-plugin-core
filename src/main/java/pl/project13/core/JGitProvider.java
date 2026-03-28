@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import org.eclipse.jgit.storage.file.WindowCacheConfig;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class JGitProvider extends GitDataProvider {
 
@@ -84,13 +85,38 @@ public class JGitProvider extends GitDataProvider {
   @Override
   public void prepareGitToExtractMoreDetailedRepoInformation() throws GitCommitIdExecutionException {
     try {
-      // more details parsed out below
-      revWalk = new RevWalk(git);
-      if (perModuleVersions && moduleBaseDir != null) {
-        evalCommit = getCommitFromModuleDirectory(moduleBaseDir);
-      } else {
-        evalCommit = getCommitFromRef();
+      // For per-module versions, we need to find the latest commit that touched the module path
+      if (pathFilter != null && !pathFilter.isEmpty()) {
+        String latestCommitForModule = findLatestCommitForPath(pathFilter);
+        if (latestCommitForModule != null && !latestCommitForModule.isEmpty()) {
+          // Override evaluateOnCommit with the latest commit that touched this module
+          this.evaluateOnCommit = latestCommitForModule;
+        }
       }
+
+      // more details parsed out bellow
+      Ref evaluateOnCommitReference = git.findRef(evaluateOnCommit);
+      ObjectId evaluateOnCommitResolvedObjectId = git.resolve(evaluateOnCommit);
+
+      if ((evaluateOnCommitReference == null) && (evaluateOnCommitResolvedObjectId == null)) {
+        throw new GitCommitIdExecutionException(
+                "Could not get " + evaluateOnCommit + " Ref, are you sure you have set the dotGitDirectory " +
+                        "property of this plugin to a valid path (currently set to " + dotGitDirectory + ")?");
+      }
+      revWalk = new RevWalk(git);
+      ObjectId headObjectId;
+      if (evaluateOnCommitReference != null) {
+        headObjectId = evaluateOnCommitReference.getObjectId();
+      } else {
+        headObjectId = evaluateOnCommitResolvedObjectId;
+      }
+
+      if (headObjectId == null) {
+        throw new GitCommitIdExecutionException(
+                "Could not get " + evaluateOnCommit + " Ref, are you sure you have some " +
+                        "commits in the dotGitDirectory (currently set to " + dotGitDirectory + ")?");
+      }
+      evalCommit = revWalk.parseCommit(headObjectId);
       revWalk.markStart(evalCommit);
     } catch (GitCommitIdExecutionException e) {
       throw e;
@@ -99,59 +125,34 @@ public class JGitProvider extends GitDataProvider {
     }
   }
 
-  private RevCommit getCommitFromModuleDirectory(File moduleBaseDir) throws GitAPIException, GitCommitIdExecutionException {
-    //retrieve last commit in folder moduleBaseDir
-    try (Git gitInstance = new Git(git)) {
-      String relativePath = git.getDirectory().getParentFile().getAbsoluteFile().toPath().relativize(moduleBaseDir.getAbsoluteFile().toPath()).toString();
-      Iterator<RevCommit> iterator;
-      if (relativePath.trim().isEmpty()) {
-        // if the relative path is empty, we are in the root of the repository
-        iterator = gitInstance.log().call().iterator();
-      } else {
-        // otherwise, we need to specify the path to get commits for that specific directory
-        iterator = gitInstance.log()
-            .addPath(relativePath).call().iterator();
-      }
-      if (!iterator.hasNext()) {
-        throw new GitCommitIdExecutionException(
-                "Could not get commit from folder " + relativePath + " , are you sure you have some " +
-                        "commits in the folder " + moduleBaseDir + "?");
+  /**
+   * Finds the latest commit that touched the specified path.
+   * Returns the commit hash or null if no commits found.
+   */
+  @Nullable
+  private String findLatestCommitForPath(@Nonnull String path) throws GitCommitIdExecutionException {
+    try {
+      ObjectId start = git.resolve(evaluateOnCommit);
+      if (start == null) {
+        return null;
       }
 
-      RevCommit revCommit = iterator.next();
-      if (revCommit == null) {
-        throw new GitCommitIdExecutionException(
-                "Could not get commit from folder " + relativePath +
-                " , are you sure you have some commits in the folder " + moduleBaseDir + "?");
+      try (Git git = Git.wrap(this.git)) {
+        Iterable<RevCommit> commits = git.log()
+            .add(start)
+            .addPath(path)
+            .setMaxCount(1)
+            .call();
+        
+        Iterator<RevCommit> it = commits.iterator();
+        if (it.hasNext()) {
+          return it.next().getName();
+        }
       }
-
-      return revCommit;
+      return null;
+    } catch (Exception e) {
+      throw new GitCommitIdExecutionException("Failed to find latest commit for path: " + path, e);
     }
-  }
-
-  private RevCommit getCommitFromRef() throws IOException, GitCommitIdExecutionException {
-    // more details parsed out below
-    Ref evaluateOnCommitReference = git.findRef(evaluateOnCommit);
-    ObjectId evaluateOnCommitResolvedObjectId = git.resolve(evaluateOnCommit);
-
-    if ((evaluateOnCommitReference == null) && (evaluateOnCommitResolvedObjectId == null)) {
-      throw new GitCommitIdExecutionException(
-              "Could not get " + evaluateOnCommit + " Ref, are you sure you have set the dotGitDirectory " +
-              "property of this plugin to a valid path (currently set to " + dotGitDirectory + ")?");
-    }
-    ObjectId headObjectId;
-    if (evaluateOnCommitReference != null) {
-      headObjectId = evaluateOnCommitReference.getObjectId();
-    } else {
-      headObjectId = evaluateOnCommitResolvedObjectId;
-    }
-
-    if (headObjectId == null) {
-      throw new GitCommitIdExecutionException(
-                "Could not get " + evaluateOnCommit + " Ref, are you sure you have some " +
-                        "commits in the dotGitDirectory (currently set to " + dotGitDirectory + ")?");
-    }
-    return revWalk.parseCommit(headObjectId);
   }
 
   @Override
@@ -212,7 +213,17 @@ public class JGitProvider extends GitDataProvider {
 
   @Override
   public String getGitDescribe() throws GitCommitIdExecutionException {
-    return getGitDescribe(git);
+    try {
+      Repository repo = getGitRepository();
+      DescribeResult describeResult = DescribeCommand
+          .on(evaluateOnCommit, repo, log, pathFilter)
+          .apply(super.gitDescribe)
+          .call();
+
+      return describeResult.toString();
+    } catch (GitAPIException ex) {
+      throw new GitCommitIdExecutionException("Unable to obtain git.commit.id.describe information", ex);
+    }
   }
 
   @Override
@@ -228,7 +239,7 @@ public class JGitProvider extends GitDataProvider {
   @Override
   public boolean isDirty() throws GitCommitIdExecutionException {
     try {
-      return JGitCommon.isRepositoryInDirtyState(git);
+      return JGitCommon.isRepositoryInDirtyState(git, pathFilter);
     } catch (GitAPIException e) {
       throw new GitCommitIdExecutionException("Failed to get git status: " + e.getMessage(), e);
     }
@@ -310,6 +321,20 @@ public class JGitProvider extends GitDataProvider {
 
   @Override
   public String getClosestTagName() throws GitCommitIdExecutionException {
+    if (pathFilter != null) {
+      try {
+        // When path filter is present, find the latest commit for that path first
+        String latestCommitForPath = findLatestCommitForPath(pathFilter);
+        if (latestCommitForPath != null && !latestCommitForPath.isEmpty()) {
+          // Use jGitCommon.getClosestTagName on the latest commit that touched this path
+          Repository repo = getGitRepository();
+          return jGitCommon.getClosestTagName(latestCommitForPath, repo, gitDescribe);
+        }
+      } catch (Exception e) {
+        log.warn("Failed to find tags for path: " + pathFilter + ", falling back to normal behavior");
+      }
+    }
+    // Fallback to normal behavior
     Repository repo = getGitRepository();
     try {
       return jGitCommon.getClosestTagName(evaluateOnCommit, repo, gitDescribe);
@@ -321,6 +346,19 @@ public class JGitProvider extends GitDataProvider {
 
   @Override
   public String getClosestTagCommitCount() throws GitCommitIdExecutionException {
+    if (pathFilter != null) {
+      try {
+        // When path filter is present, we need to find the latest commit for that path first
+        String latestCommitForPath = findLatestCommitForPath(pathFilter);
+        if (latestCommitForPath != null && !latestCommitForPath.isEmpty()) {
+          Repository repo = getGitRepository();
+          return jGitCommon.getClosestTagCommitCount(latestCommitForPath, repo, gitDescribe);
+        }
+      } catch (Exception e) {
+        log.warn("Failed to find latest commit for path: " + pathFilter + ", falling back to normal behavior");
+      }
+    }
+    // Fallback to normal behavior
     Repository repo = getGitRepository();
     try {
       return jGitCommon.getClosestTagCommitCount(evaluateOnCommit, repo, gitDescribe);
@@ -333,6 +371,13 @@ public class JGitProvider extends GitDataProvider {
   @Override
   public String getTotalCommitCount() throws GitCommitIdExecutionException {
     try {
+      if (pathFilter != null && !pathFilter.isEmpty()) {
+        long count = 0;
+        for (RevCommit ignored : Git.wrap(git).log().add(evalCommit).addPath(pathFilter).call()) {
+          count++;
+        }
+        return String.valueOf(count);
+      }
       return String.valueOf(RevWalkUtils.count(revWalk, evalCommit, null));
     } catch (Throwable t) {
       // could not find any tags to describe
@@ -354,21 +399,6 @@ public class JGitProvider extends GitDataProvider {
       // fixing lock issues on Windows when repository has pack files
       WindowCacheConfig config = new WindowCacheConfig();
       config.install();
-    }
-  }
-
-  // Visible for testing
-  String getGitDescribe(@Nonnull Repository repository) throws GitCommitIdExecutionException {
-    try {
-      DescribeResult describeResult = DescribeCommand
-          .on(evaluateOnCommit, repository, log)
-          .apply(super.gitDescribe)
-          .call();
-
-      return describeResult.toString();
-    } catch (GitAPIException ex) {
-      ex.printStackTrace();
-      throw new GitCommitIdExecutionException("Unable to obtain git.commit.id.describe information", ex);
     }
   }
 

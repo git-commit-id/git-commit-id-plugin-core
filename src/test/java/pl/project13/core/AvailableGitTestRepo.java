@@ -118,10 +118,23 @@ public enum AvailableGitTestRepo {
   WITH_THREE_COMMITS_AND_TWO_TAGS_CURRENTLY_ON_COMMIT_WITHOUT_TAG("src/test/resources/_git_three_commits_and_two_tags_currently_on_commit_without_tag"),
   /**
    * <pre>
-   * 4862e42508099d359d791269f3735baff36d9102 a change in the root pom  (HEAD, master)
-   * 2b91f8b730121f66a833f771cb7241919fed5917 a change in submodule-two
-   * 8e88956d45d57725463550f4406a54d12a46ae78 a change in submodule-one
-   * 9c5d2e13d042b0acb71c48232a9c408e42da87f7 new repo for testing (based on git-commit-id-maven-debugging)
+   * $  git log --name-only --pretty=format:"%H '%an' '%aD' '%s' %d" --date=short
+   * 2ed2ea209fb99c360cd8434eb2d82b929da6b908 'TheSnoozer' 'Fri, 27 Mar 2026 17:40:36 +0100' 'a change in the root pom'  (HEAD -> master)
+   * pom.xml
+   *
+   * 70a13b95591dac76ce92dd9087d557fca539f98a 'submodule-two Author' 'Fri, 27 Mar 2026 17:39:59 +0100' 'a change in submodule-two'  (tag: tag-submodule-two)
+   * submodule-two/pom.xml
+   *
+   * 91e49245092c089624d3e770d902cfc8bc53a852 'submodule-one Author' 'Fri, 27 Mar 2026 17:39:23 +0100' 'a change in submodule-one'  (tag: tag-submodule-one)
+   * submodule-one/pom.xml
+   *
+   * 9c5d2e13d042b0acb71c48232a9c408e42da87f7 'TheSnoozer' 'Fri, 27 Mar 2026 17:38:16 +0100' 'new repo for testing (based on git-commit-id-maven-debugging)'
+   * [snip]
+   * </pre>
+   * and dirty:
+   * <pre>
+   * $ git status -s
+   * M submodule-two/pom.xml
    * </pre>
    */
   WITH_SUBMODULES_AND_MULTIPLE_COMMITS("src/test/resources/_git_with_submodules_and_multiple_commits"),

@@ -357,10 +357,17 @@ public class JGitCommon {
     }
   }
 
-  public static boolean isRepositoryInDirtyState(Repository repo) throws GitAPIException {
+  public static boolean isRepositoryInDirtyState(Repository repo, String pathFilter) throws GitAPIException {
+    // TODO close?
     Git git = Git.wrap(repo);
-    Status status = git.status().call();
-
+    Status status;
+    if (pathFilter != null && !pathFilter.isEmpty()) {
+      // When path filter is present, check dirty state only for that path
+      status = git.status().addPath(pathFilter).call();
+    } else {
+      // Fallback to normal behavior - check entire repository
+      status = git.status().call();
+    }
     // Git describe doesn't mind about untracked files when checking if
     // repo is dirty. JGit does this, so we cannot use the isClean method
     // to get the same behaviour. Instead check dirty state without

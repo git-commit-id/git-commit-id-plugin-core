@@ -23,6 +23,7 @@ import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.log.LogInterface;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -42,8 +43,6 @@ public class NativeGitProvider extends GitDataProvider {
   final long nativeGitTimeoutInMs;
 
   final File canonical;
-
-  private String moduleRelativePath;
 
   @Nonnull
   public static NativeGitProvider on(@Nonnull File dotGitDirectory, long nativeGitTimeoutInMs, @Nonnull LogInterface log) {
@@ -92,19 +91,6 @@ public class NativeGitProvider extends GitDataProvider {
 
   @Override
   public void prepareGitToExtractMoreDetailedRepoInformation() throws GitCommitIdExecutionException {
-    if (perModuleVersions && moduleBaseDir != null) {
-      // For per-module versions, we need to determine the relative path of the module
-      // This will be used in git commands with the -- pathspec limiter
-      try {
-        File gitRoot = canonical.getParentFile();
-        String relativePath = gitRoot.getAbsoluteFile().toPath()
-            .relativize(moduleBaseDir.getAbsoluteFile().toPath()).toString();
-        // Store the relative path for use in git commands
-        this.moduleRelativePath = relativePath.isEmpty() ? null : relativePath;
-      } catch (Exception e) {
-        throw new GitCommitIdExecutionException("Unable to compute module relative path", e);
-      }
-    }
   }
 
   @Override
@@ -145,7 +131,9 @@ public class NativeGitProvider extends GitDataProvider {
   }
 
   private String getBranchForCommitish(File canonical) throws GitCommitIdExecutionException {
-    String branch = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "branch --points-at " + evaluateOnCommit);
+    String branch = runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "branch --points-at " + evaluateOnCommit);
     if (branch != null && !branch.isEmpty()) {
       // multiple branches could point to the same commit - return them all...
       branch = Stream.of(branch.split("\n"))
@@ -162,8 +150,22 @@ public class NativeGitProvider extends GitDataProvider {
 
   @Override
   public String getGitDescribe() throws GitCommitIdExecutionException {
+    if (pathFilter != null) {
+      // When path filter is present, we need to find the latest commit for that path first
+      String latestCommitForPath = findLatestCommitForPath(pathFilter);
+      if (latestCommitForPath != null && !latestCommitForPath.isEmpty()) {
+        // Use the latest commit that touched this path
+        final String argumentsForGitDescribe = getArgumentsForGitDescribe(gitDescribe);
+        return runQuietGitCommand(
+                canonical, nativeGitTimeoutInMs,
+                "describe" + argumentsForGitDescribe + " " + latestCommitForPath);
+      }
+    }
+    // Fallback to normal behavior
     final String argumentsForGitDescribe = getArgumentsForGitDescribe(gitDescribe);
-    return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "describe" + argumentsForGitDescribe);
+    return runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "describe" + argumentsForGitDescribe);
   }
 
   private String getArgumentsForGitDescribe(GitDescribeConfig describeConfig) {
@@ -173,6 +175,8 @@ public class NativeGitProvider extends GitDataProvider {
 
     StringBuilder argumentsForGitDescribe = new StringBuilder();
     boolean hasCommitish = evalCommitIsNotHead();
+    boolean hasPathFilter = pathFilter != null;
+    
     if (hasCommitish) {
       argumentsForGitDescribe.append(" " + evaluateOnCommit);
     }
@@ -183,9 +187,10 @@ public class NativeGitProvider extends GitDataProvider {
 
     final String dirtyMark = describeConfig.getDirty();
     if ((dirtyMark != null) && !dirtyMark.isEmpty()) {
-      // we can either have evaluateOnCommit or --dirty flag set
-      if (hasCommitish) {
-        log.warn("You might use strange arguments since it's unfortunately not supported to have evaluateOnCommit and the --dirty flag for the describe command set at the same time");
+      // we can either have evaluateOnCommit or --dirty flag set, but not both
+      // also, we can't have path filter and --dirty flag set at the same time
+      if (hasCommitish || hasPathFilter) {
+        log.warn("You might use strange arguments since it's unfortunately not supported to have evaluateOnCommit/path filter and the --dirty flag for the describe command set at the same time");
       } else {
         argumentsForGitDescribe.append(" --dirty=").append(dirtyMark);
       }
@@ -210,17 +215,50 @@ public class NativeGitProvider extends GitDataProvider {
 
   @Override
   public String getCommitId() throws GitCommitIdExecutionException {
+    // For per-module versions, find the latest commit that touched the module path
+    if (pathFilter != null && !pathFilter.isEmpty()) {
+      String latestCommitForModule = findLatestCommitForPath(pathFilter);
+      if (latestCommitForModule != null && !latestCommitForModule.isEmpty()) {
+        // Use the latest commit that touched this module
+        return runQuietGitCommand(
+                canonical, nativeGitTimeoutInMs,
+                "rev-parse " + latestCommitForModule);
+      }
+    }
+
+    // Fallback to normal logic
     boolean evaluateOnCommitIsSet = evalCommitIsNotHead();
-    String pathspec = moduleRelativePath != null ? " -- " + moduleRelativePath : "";
     if (evaluateOnCommitIsSet) {
       // if evaluateOnCommit represents a tag we need to perform the rev-parse on the actual commit reference
       // in case evaluateOnCommit is not a reference rev-list will just return the argument given
       // and thus it's always safe(r) to unwrap it
       // however when evaluateOnCommit is not set we don't want to waste calls to the native binary
-      String actualCommitId = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list -n 1 " + evaluateOnCommit + pathspec);
-      return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-parse " + actualCommitId);
+      String actualCommitId = runQuietGitCommand(
+              canonical, nativeGitTimeoutInMs,
+              "rev-list -n 1 " + evaluateOnCommit);
+      return runQuietGitCommand(
+              canonical, nativeGitTimeoutInMs,
+              "rev-parse " + actualCommitId);
     } else {
-      return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-parse HEAD" + pathspec);
+      return runQuietGitCommand(
+              canonical, nativeGitTimeoutInMs,
+              "rev-parse HEAD");
+    }
+  }
+
+  /**
+   * Finds the latest commit that touched the specified path using native git.
+   * Returns the commit hash or null if no commits found.
+   */
+  @Nullable
+  private String findLatestCommitForPath(@Nonnull String path) throws GitCommitIdExecutionException {
+    try {
+      return runQuietGitCommand(
+              canonical, nativeGitTimeoutInMs,
+              "log -n 1 --format=%H --no-show-signature " + evaluateOnCommit + " -- " + path);
+    } catch (GitCommitIdExecutionException e) {
+      log.warn("Failed to find latest commit for path: " + path + ", falling back to normal behavior");
+      return null;
     }
   }
 
@@ -240,60 +278,89 @@ public class NativeGitProvider extends GitDataProvider {
 
   @Override
   public boolean isDirty() throws GitCommitIdExecutionException {
-    String pathspec = moduleRelativePath != null ? " -- " + moduleRelativePath : "";
-    return !tryCheckEmptyRunGitCommand(canonical, nativeGitTimeoutInMs, "status -s" + pathspec);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    return !tryCheckEmptyRunGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "status -s" + pathSpec);
   }
 
   @Override
   public String getCommitAuthorName() throws GitCommitIdExecutionException {
-    return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "log -1 --pretty=format:%an --no-show-signature " + evaluateOnCommit);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    return runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "log -1 --pretty=format:%an --no-show-signature " + evaluateOnCommit + pathSpec);
   }
 
   @Override
   public String getCommitAuthorEmail() throws GitCommitIdExecutionException {
-    return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "log -1 --pretty=format:%ae --no-show-signature " + evaluateOnCommit);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    return runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "log -1 --pretty=format:%ae --no-show-signature " + evaluateOnCommit + pathSpec);
   }
 
   @Override
   public String getCommitMessageFull() throws GitCommitIdExecutionException {
-    return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "log -1 --pretty=format:%B --no-show-signature " + evaluateOnCommit);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    return runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "log -1 --pretty=format:%B --no-show-signature " + evaluateOnCommit + pathSpec);
   }
 
   @Override
   public String getCommitMessageShort() throws GitCommitIdExecutionException {
-    return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "log -1 --pretty=format:%s --no-show-signature " + evaluateOnCommit);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    return runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "log -1 --pretty=format:%s --no-show-signature " + evaluateOnCommit + pathSpec);
   }
 
   @Override
   public String getCommitTime() throws GitCommitIdExecutionException {
-    String value =  runQuietGitCommand(canonical, nativeGitTimeoutInMs, "log -1 --pretty=format:%ct --no-show-signature " + evaluateOnCommit);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    String value = runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "log -1 --pretty=format:%ct --no-show-signature " + evaluateOnCommit + pathSpec);
     SimpleDateFormat smf = getSimpleDateFormatWithTimeZone();
     return smf.format(Long.parseLong(value) * 1000L);
   }
 
   @Override
   public String getCommitAuthorTime() throws GitCommitIdExecutionException {
-    String value =  runQuietGitCommand(canonical, nativeGitTimeoutInMs, "log -1 --pretty=format:%at --no-show-signature " + evaluateOnCommit);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    String value = runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "log -1 --pretty=format:%at --no-show-signature " + evaluateOnCommit + pathSpec);
     SimpleDateFormat smf = getSimpleDateFormatWithTimeZone();
     return smf.format(Long.parseLong(value) * 1000L);
   }
 
   @Override
   public String getCommitCommitterTime() throws GitCommitIdExecutionException {
-    String value =  runQuietGitCommand(canonical, nativeGitTimeoutInMs, "log -1 --pretty=format:%ct --no-show-signature " + evaluateOnCommit);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    String value = runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "log -1 --pretty=format:%ct --no-show-signature " + evaluateOnCommit + pathSpec);
     SimpleDateFormat smf = getSimpleDateFormatWithTimeZone();
     return smf.format(Long.parseLong(value) * 1000L);
   }
 
   @Override
   public String getTags() throws GitCommitIdExecutionException {
-    final String result = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "tag --contains " + evaluateOnCommit);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    final String result = runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "tag --contains " + evaluateOnCommit + pathSpec);
     return result.replace('\n', ',');
   }
 
   @Override
   public String getTag() throws GitCommitIdExecutionException {
-    final String result = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "tag --points-at " + evaluateOnCommit);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    final String result = runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "tag --points-at " + evaluateOnCommit + pathSpec);
     return result.replace('\n', ',');
   }
 
@@ -304,6 +371,31 @@ public class NativeGitProvider extends GitDataProvider {
 
   @Override
   public String getClosestTagName() throws GitCommitIdExecutionException {
+    if (pathFilter != null) {
+      try {
+        // When path filter is present, find the latest commit for that path first
+        String latestCommitForPath = findLatestCommitForPath(pathFilter);
+        if (latestCommitForPath != null && !latestCommitForPath.isEmpty()) {
+          // Use git describe on the latest commit that touched this path
+          StringBuilder argumentsForGitDescribe = new StringBuilder();
+          argumentsForGitDescribe.append("describe " + latestCommitForPath + " --abbrev=0");
+          if (gitDescribe != null) {
+            if (gitDescribe.getTags()) {
+              argumentsForGitDescribe.append(" --tags");
+            }
+
+            final String matchOption = gitDescribe.getMatch();
+            if (matchOption != null && !matchOption.isEmpty()) {
+              argumentsForGitDescribe.append(" --match=").append(matchOption);
+            }
+          }
+          return runGitCommand(canonical, nativeGitTimeoutInMs, argumentsForGitDescribe.toString());
+        }
+      } catch (Exception e) {
+        log.warn("Failed to find tags for path: " + pathFilter + ", falling back to normal behavior");
+      }
+    }
+    // Fallback to normal behavior
     try {
       StringBuilder argumentsForGitDescribe = new StringBuilder();
       argumentsForGitDescribe.append("describe " + evaluateOnCommit + " --abbrev=0");
@@ -328,16 +420,20 @@ public class NativeGitProvider extends GitDataProvider {
   public String getClosestTagCommitCount() throws GitCommitIdExecutionException {
     String closestTagName = getClosestTagName();
     if (closestTagName != null && !closestTagName.trim().isEmpty()) {
-      String pathspec = moduleRelativePath != null ? " -- " + moduleRelativePath : "";
-      return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list " + closestTagName + ".." + evaluateOnCommit + " --count" + pathspec);
+      String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+      return runQuietGitCommand(
+              canonical, nativeGitTimeoutInMs,
+              "rev-list " + closestTagName + ".." + evaluateOnCommit + " --count" + pathSpec);
     }
     return "";
   }
 
   @Override
   public String getTotalCommitCount() throws GitCommitIdExecutionException {
-    String pathspec = moduleRelativePath != null ? " -- " + moduleRelativePath : "";
-    return runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list " + evaluateOnCommit + " --count" + pathspec);
+    String pathSpec = pathFilter != null ? " -- " + pathFilter : "";
+    return runQuietGitCommand(
+            canonical, nativeGitTimeoutInMs,
+            "rev-list " + evaluateOnCommit + " --count" + pathSpec);
   }
 
   @Override
@@ -551,8 +647,12 @@ public class NativeGitProvider extends GitDataProvider {
         fetch(remoteBranch.get());
       }
       String localBranchName = getBranchName();
-      String ahead = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list --right-only --count " + remoteBranch.get() + "..." + localBranchName);
-      String behind = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "rev-list --left-only --count " + remoteBranch.get() + "..." + localBranchName);
+      String ahead = runQuietGitCommand(
+              canonical, nativeGitTimeoutInMs,
+              "rev-list --right-only --count " + remoteBranch.get() + "..." + localBranchName);
+      String behind = runQuietGitCommand(
+              canonical, nativeGitTimeoutInMs,
+              "rev-list --left-only --count " + remoteBranch.get() + "..." + localBranchName);
       return AheadBehind.of(ahead, behind);
     } catch (Exception e) {
       throw new GitCommitIdExecutionException("Failed to read ahead behind count: " + e.getMessage(), e);
@@ -561,12 +661,16 @@ public class NativeGitProvider extends GitDataProvider {
 
   private Optional<String> remoteBranch() {
     try {
-      String remoteRef = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "symbolic-ref -q " + evaluateOnCommit);
+      String remoteRef = runQuietGitCommand(
+              canonical, nativeGitTimeoutInMs,
+              "symbolic-ref -q " + evaluateOnCommit);
       if (remoteRef == null || remoteRef.isEmpty()) {
         log.debug("Could not find ref for: " + evaluateOnCommit);
         return Optional.empty();
       }
-      String remoteBranch = runQuietGitCommand(canonical, nativeGitTimeoutInMs, "for-each-ref --format=%(upstream:short) " + remoteRef);
+      String remoteBranch = runQuietGitCommand(
+              canonical, nativeGitTimeoutInMs,
+              "for-each-ref --format=%(upstream:short) " + remoteRef);
       return Optional.ofNullable(remoteBranch.isEmpty() ? null : remoteBranch);
     } catch (Exception e) {
       return Optional.empty();
@@ -575,7 +679,9 @@ public class NativeGitProvider extends GitDataProvider {
   
   private void fetch(String remoteBranch) {
     try {
-      runQuietGitCommand(canonical, nativeGitTimeoutInMs, "fetch " + remoteBranch.replaceFirst("/", " "));
+      runQuietGitCommand(
+              canonical, nativeGitTimeoutInMs,
+              "fetch " + remoteBranch.replaceFirst("/", " "));
     } catch (Exception e) {
       log.error("Failed to execute fetch", e);
     }

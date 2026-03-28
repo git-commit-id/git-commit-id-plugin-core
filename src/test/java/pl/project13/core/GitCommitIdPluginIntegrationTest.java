@@ -1765,7 +1765,7 @@ public class GitCommitIdPluginIntegrationTest {
                     .setDotGitDirectory(dotGitDirectory)
                     .setUseNativeGit(useNativeGit)
                     .setPerModuleVersions(true)
-                    .setModuleBaseDir(dotGitDirectory.getParentFile().toPath().resolve(submoduleName).toFile())
+                    .setProjectBaseDir(dotGitDirectory.getParentFile().toPath().resolve(submoduleName).toFile())
                     .build();
     Properties properties = new Properties();
 
@@ -1773,18 +1773,53 @@ public class GitCommitIdPluginIntegrationTest {
     GitCommitIdPlugin.runPlugin(cb, properties);
 
     // then
-    assertThat(properties).containsKey("git.commit.id");
+    assertGitPropertiesPresentInProject(properties);
 
-    String expectedGitCommitId = null;
+    // setup expectations
+    Map<String, Object> expectedValues = new HashMap<>();
+    expectedValues.put("git.commit.id", null);
+    expectedValues.put("git.closest.tag.name", "tag-" + submoduleName);
+    expectedValues.put("git.closest.tag.commit.count", null);
+    expectedValues.put("git.dirty", null);
+    expectedValues.put("git.commit.message.full", "a change in " + submoduleName);
+    expectedValues.put("git.commit.user.name", submoduleName + " Author");
+    expectedValues.put("git.commit.user.email", submoduleName + "@example.com");
+    expectedValues.put("git.commit.time", null);
+    expectedValues.put("git.commit.author.time", null);
+    expectedValues.put("git.commit.committer.time", null);
+
     if (submoduleName.equals("submodule-one")) {
-      expectedGitCommitId = "8e88956d45d57725463550f4406a54d12a46ae78";
+      expectedValues.put("git.commit.id", "91e49245092c089624d3e770d902cfc8bc53a852");
+      expectedValues.put("git.closest.tag.commit.count", 0);
+      expectedValues.put("git.dirty", true); // Really?
+      // date -d @$(git log -1 --pretty=format:%ct 91e4924) "+%Y-%m-%dT%H:%M:%S%z"
+      expectedValues.put("git.commit.time", "2026-03-28T11:47:51+0100");
+      // date -d @$(git log -1 --pretty=format:%at 91e4924) "+%Y-%m-%dT%H:%M:%S%z"
+      expectedValues.put("git.commit.author.time", "2026-03-27T17:39:23+0100");
+      // date -d @$(git log -1 --pretty=format:%ct 91e4924) "+%Y-%m-%dT%H:%M:%S%z"
+      expectedValues.put("git.commit.committer.time", "2026-03-28T11:47:51+0100");
     } else if (submoduleName.equals("submodule-two")) {
-      expectedGitCommitId = "2b91f8b730121f66a833f771cb7241919fed5917";
+      expectedValues.put("git.commit.id", "70a13b95591dac76ce92dd9087d557fca539f98a");
+      expectedValues.put("git.closest.tag.commit.count", 0);
+      expectedValues.put("git.dirty", true);
+      // date -d @$(git log -1 --pretty=format:%ct 70a13b9) "+%Y-%m-%dT%H:%M:%S%z"
+      expectedValues.put("git.commit.time", "2026-03-28T11:48:17+0100");
+      // date -d @$(git log -1 --pretty=format:%at 70a13b9) "+%Y-%m-%dT%H:%M:%S%z"
+      expectedValues.put("git.commit.author.time", "2026-03-27T17:39:59+0100");
+      // date -d @$(git log -1 --pretty=format:%ct 70a13b9) "+%Y-%m-%dT%H:%M:%S%z"
+      expectedValues.put("git.commit.committer.time", "2026-03-28T11:48:17+0100");
     }
-    assertThat(expectedGitCommitId).isNotNull();
-    assertThat(properties.getProperty("git.commit.id"))
-            .as("useNativeGit=%s", useNativeGit)
-            .isEqualTo(expectedGitCommitId);
+
+    // Assertions
+    for (Map.Entry<String, Object> entry : expectedValues.entrySet()) {
+      String key = entry.getKey();
+      Object expectedValue = entry.getValue();
+      
+      assertThat(expectedValue).isNotNull();
+      assertThat(properties.getProperty(key))
+              .as("useNativeGit=%s,submoduleName=%s,key=%s", useNativeGit, submoduleName, key)
+              .isEqualTo(String.valueOf(expectedValue));
+    }
   }
 
   private GitDescribeConfig createGitDescribeConfig(boolean forceLongFormat, int abbrev) {

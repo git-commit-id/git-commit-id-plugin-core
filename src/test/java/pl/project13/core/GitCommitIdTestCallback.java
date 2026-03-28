@@ -207,11 +207,6 @@ public class GitCommitIdTestCallback {
     return this;
   }
 
-  public GitCommitIdTestCallback setModuleBaseDir(File moduleBaseDir) {
-    this.moduleBaseDir = moduleBaseDir;
-    return this;
-  }
-
   public GitCommitIdPlugin.Callback build() {
     return new GitCommitIdPlugin.Callback() {
       @Override
@@ -367,13 +362,8 @@ public class GitCommitIdTestCallback {
       }
 
       @Override
-      public boolean getPerModuleVersions() {
+      public boolean isPerModuleVersions() {
         return perModuleVersions;
-      }
-
-      @Override
-      public File getModuleBaseDir() {
-        return moduleBaseDir;
       }
     };
   }
