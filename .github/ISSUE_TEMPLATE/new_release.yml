@@ -30,7 +30,7 @@ body:
 
               - [ ] verify that `~/.m2/settings.xml` exists (https://central.sonatype.org/publish/publish-portal-maven/#credentials)
                     - contains user token credentials from https://central.sonatype.com/ (generate token at https://central.sonatype.org/publish/generate-portal-token/)
-              - [ ] Set release version: `bump2version --new-version 6.0.1 release --dry-run --verbose`
+              - [ ] Set release version: `bump2version patch --dry-run --verbose`
               - [ ] Push changes and tag: `git push origin master --follow-tags`
               - [ ] wait for github actions to pass
               - [ ] `mvn clean deploy -Pgpg`
