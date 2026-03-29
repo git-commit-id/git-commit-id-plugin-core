@@ -6,7 +6,18 @@
     <packaging>jar</packaging>
     <version>6.1.4</version>
     <name>Git Commit Id Plugin Core</name>
+    <description>A library for extracting git information at build time</description>
     <url>https://github.com/git-commit-id/git-commit-id-plugin-core</url>
+
+    <developers>
+        <developer>
+            <id>git-commit-id</id>
+            <name>Git Commit ID Community</name>
+            <email>github@git-commit-id.io</email>
+            <organization>git-commit-id</organization>
+            <organizationUrl>https://github.com/git-commit-id</organizationUrl>
+        </developer>
+    </developers>
 
     <licenses>
         <license>
