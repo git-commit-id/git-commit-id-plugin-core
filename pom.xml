@@ -4,7 +4,7 @@
     <groupId>io.github.git-commit-id</groupId>
     <artifactId>git-commit-id-plugin-core</artifactId>
     <packaging>jar</packaging>
-    <version>6.1.4</version>
+    <version>6.1.5</version>
     <name>Git Commit Id Plugin Core</name>
     <description>A library for extracting git information at build time</description>
     <url>https://github.com/git-commit-id/git-commit-id-plugin-core</url>
@@ -30,7 +30,7 @@
         <url>git@github.com:git-commit-id/git-commit-id-plugin-core.git</url>
         <connection>scm:git@github.com:git-commit-id/git-commit-id-plugin-core</connection>
         <developerConnection>scm:git:git@github.com:git-commit-id/git-commit-id-plugin-core.git</developerConnection>
-        <tag>v6.1.4</tag>
+        <tag>v6.1.5</tag>
     </scm>
 
     <properties>
