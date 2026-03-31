@@ -239,12 +239,6 @@
             <artifactId>org.eclipse.jgit.ssh.jsch</artifactId>
             <version>${jgit.version}</version>
         </dependency>
-        <!-- Joda Time -->
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.14.1</version>
-        </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>

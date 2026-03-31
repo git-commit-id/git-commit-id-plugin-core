@@ -19,24 +19,23 @@ package pl.project13.core.jgit.dummy;
 
 import org.eclipse.jgit.lib.AnyObjectId;
 import org.eclipse.jgit.revwalk.RevTag;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
+import java.time.Instant;
 
 public class DatedRevTag {
 
   public final AnyObjectId id;
   public final String tagName;
-  public final DateTime date;
+  public final Instant date;
 
   public DatedRevTag(RevTag tag) {
-    this(tag.getId(), tag.getTagName(), (tag.getTaggerIdent() != null) ? new DateTime(tag.getTaggerIdent().getWhen()) : DateTime.now().minusYears(1900));
+    this(tag.getId(), tag.getTagName(), (tag.getTaggerIdent() != null) ? tag.getTaggerIdent().getWhen().toInstant() : Instant.now());
   }
 
   public DatedRevTag(AnyObjectId id, String tagName) {
-    this(id, tagName, DateTime.now().minusYears(2000));
+    this(id, tagName, Instant.now());
   }
 
-  public DatedRevTag(AnyObjectId id, String tagName, DateTime date) {
+  public DatedRevTag(AnyObjectId id, String tagName, Instant date) {
     this.id = id;
     this.tagName = tagName;
     this.date = date;
@@ -47,7 +46,7 @@ public class DatedRevTag {
     return "DatedRevTag{" +
         "id=" + id.name() +
         ", tagName='" + tagName + '\'' +
-        ", date=" + DateTimeFormat.longDateTime().print(date) +
+        ", date=" + date +
         '}';
   }
 }
