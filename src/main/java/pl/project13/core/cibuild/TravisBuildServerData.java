@@ -17,16 +17,16 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.log.LogInterface;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Properties;
 
 public class TravisBuildServerData extends BuildServerDataProvider {
 
-  TravisBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
+  TravisBuildServerData(LogInterface log, @NonNull Map<String, String> env) {
     super(log, env);
   }
 
@@ -35,12 +35,12 @@ public class TravisBuildServerData extends BuildServerDataProvider {
    * @return true, if the system environment variables contain the Travis specific environment variable; false otherwise
    * @see <a href=https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables>Travis</a>
    */
-  public static boolean isActiveServer(@Nonnull Map<String, String> env) {
+  public static boolean isActiveServer(@NonNull Map<String, String> env) {
     return env.containsKey("TRAVIS");
   }
 
   @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
+  void loadBuildNumber(@NonNull Properties properties) {
     String buildNumber = env.getOrDefault("TRAVIS_BUILD_NUMBER", "");
     String uniqueBuildNumber = env.getOrDefault("TRAVIS_BUILD_ID", "");
 

@@ -17,7 +17,8 @@
 
 package pl.project13.core.util;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
+
 import java.io.File;
 import java.util.EventListener;
 
@@ -29,12 +30,12 @@ public interface BuildFileChangeListener extends EventListener {
    * {code}
    * BuildContext buildContext = ...
    * new BuildFileChangeListener() {
-   *   void changed(@Nonnull File file) {
+   *   void changed(@NonNull File file) {
    *     buildContext.refresh(file);
    *   }
    * }
    * {code}
    * @param file The output properties File that was changed by the generator
    */
-  void changed(@Nonnull File file);
+  void changed(@NonNull File file);
 }

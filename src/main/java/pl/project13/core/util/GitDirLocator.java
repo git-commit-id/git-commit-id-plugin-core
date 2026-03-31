@@ -22,9 +22,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.eclipse.jgit.lib.Constants;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import pl.project13.core.GitCommitIdExecutionException;
 
 /**
@@ -67,7 +67,7 @@ public class GitDirLocator {
    *     location or within the project or it's reactor projects.
    */
   @Nullable
-  public File lookupGitDirectory(@Nonnull File manuallyConfiguredDir) throws GitCommitIdExecutionException {
+  public File lookupGitDirectory(@NonNull File manuallyConfiguredDir) throws GitCommitIdExecutionException {
     File dotGitDirectory = runSearch(manuallyConfiguredDir, true);
     if (shouldFailOnNoGitDirectory && !directoryExists(dotGitDirectory)) {
       throw new GitCommitIdExecutionException(
@@ -121,7 +121,7 @@ public class GitDirLocator {
   }
 
   @Nullable
-  private File runSearch(@Nonnull File manuallyConfiguredDir, boolean resolveGitReferenceFile) {
+  private File runSearch(@NonNull File manuallyConfiguredDir, boolean resolveGitReferenceFile) {
     if (manuallyConfiguredDir.exists()) {
 
       // If manuallyConfiguredDir is a directory then we can use it as the git path.
@@ -183,7 +183,7 @@ public class GitDirLocator {
    *
    * @return File object with path loaded or null
    */
-  private File processGitDirFile(@Nonnull File file) {
+  private File processGitDirFile(@NonNull File file) {
     try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
       // There should be just one line in the file, e.g.
       // "gitdir: /usr/local/src/parentproject/.git/modules/submodule"

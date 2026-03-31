@@ -20,9 +20,9 @@ package pl.project13.core;
 import java.util.List;
 import java.util.Properties;
 
+import org.jspecify.annotations.Nullable;
 import pl.project13.core.log.LogInterface;
 
-import javax.annotation.Nullable;
 
 public class PropertiesFilterer {
 

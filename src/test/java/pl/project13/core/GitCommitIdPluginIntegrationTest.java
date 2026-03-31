@@ -23,6 +23,7 @@ import jakarta.json.JsonReader;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +33,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.util.GenericFileManager;
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -1858,7 +1858,7 @@ public class GitCommitIdPluginIntegrationTest {
     );
   }
 
-  private File createTmpDotGitDirectory(@Nonnull AvailableGitTestRepo availableGitTestRepo) throws IOException {
+  private File createTmpDotGitDirectory(@NonNull AvailableGitTestRepo availableGitTestRepo) throws IOException {
     Path dotGitDirectory = sandbox.resolve(".git");
     deleteDir(dotGitDirectory);
 
@@ -1867,13 +1867,13 @@ public class GitCommitIdPluginIntegrationTest {
     return dotGitDirectory.toFile();
   }
 
-  private void deleteDir(@Nonnull Path toBeDeleted) throws IOException {
+  private void deleteDir(@NonNull Path toBeDeleted) throws IOException {
     if (toBeDeleted.toFile().exists()) {
       FileUtils.forceDelete(toBeDeleted.toFile());
     }
   }
 
-  private Git git(@Nonnull File dotGitDirectory) throws IOException {
+  private Git git(@NonNull File dotGitDirectory) throws IOException {
     return Git.open(dotGitDirectory);
   }
 }

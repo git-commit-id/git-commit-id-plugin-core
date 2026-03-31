@@ -18,10 +18,10 @@
 package pl.project13.core.util;
 
 import nu.studer.java.util.OrderedProperties;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import pl.project13.core.CannotReadFileException;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class PropertyManager {
-  public static void putWithoutPrefix(@Nonnull Properties properties, String key, String value) {
+  public static void putWithoutPrefix(@NonNull Properties properties, String key, String value) {
     if (!isNotEmpty(value)) {
       value = "Unknown";
     }
@@ -40,11 +40,11 @@ public class PropertyManager {
     return null != value && !" ".equals(value.trim().replaceAll(" ", ""));
   }
 
-  protected static Properties readProperties(@Nonnull File propertiesFile) throws CannotReadFileException {
+  protected static Properties readProperties(@NonNull File propertiesFile) throws CannotReadFileException {
     return PropertyManager.readProperties(propertiesFile, StandardCharsets.ISO_8859_1);
   }
 
-  protected static Properties readProperties(@Nonnull File propertiesFile, @Nonnull Charset charset) throws CannotReadFileException {
+  protected static Properties readProperties(@NonNull File propertiesFile, @NonNull Charset charset) throws CannotReadFileException {
     try (FileInputStream fis = new FileInputStream(propertiesFile);
          InputStreamReader reader = new InputStreamReader(fis, charset)) {
       final OrderedProperties retVal = new OrderedProperties();

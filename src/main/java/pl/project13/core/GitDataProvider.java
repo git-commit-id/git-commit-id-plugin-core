@@ -17,13 +17,13 @@
 
 package pl.project13.core;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.cibuild.BuildServerDataProvider;
 import pl.project13.core.cibuild.UnknownBuildServerData;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.PropertyManager;
 
-import javax.annotation.Nonnull;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +44,7 @@ public abstract class GitDataProvider implements GitProvider {
   /**
    * Logging provider which will be used to log events.
    */
-  @Nonnull
+  @NonNull
   protected final LogInterface log;
 
   /**
@@ -126,7 +126,7 @@ public abstract class GitDataProvider implements GitProvider {
    * Constructor to encapsulates all references required to dertermine all git-data.
    * @param log logging provider which will be used to log events
    */
-  public GitDataProvider(@Nonnull LogInterface log) {
+  public GitDataProvider(@NonNull LogInterface log) {
     this.log = log;
   }
 
@@ -268,7 +268,7 @@ public abstract class GitDataProvider implements GitProvider {
    * @param properties The Properties-Set that should be enriched by the generated one.
    * @throws GitCommitIdExecutionException In case any problem occurred during loading of the properties from the git repository.
    */
-  protected void loadGitData(@Nonnull String evaluateOnCommit, @Nonnull Map<String,String> env, @Nonnull Properties properties) throws GitCommitIdExecutionException {
+  protected void loadGitData(@NonNull String evaluateOnCommit, @NonNull Map<String,String> env, @NonNull Properties properties) throws GitCommitIdExecutionException {
     this.evaluateOnCommit = evaluateOnCommit;
     init();
     // git.user.name
@@ -337,7 +337,7 @@ public abstract class GitDataProvider implements GitProvider {
     }
   }
 
-  private void maybePutGitDescribe(@Nonnull Properties properties) throws GitCommitIdExecutionException {
+  private void maybePutGitDescribe(@NonNull Properties properties) throws GitCommitIdExecutionException {
     boolean isGitDescribeOptOutByDefault = (gitDescribe == null);
     boolean isGitDescribeOptOutByConfiguration = (gitDescribe != null && !gitDescribe.isSkip());
 
@@ -346,7 +346,7 @@ public abstract class GitDataProvider implements GitProvider {
     }
   }
 
-  protected void loadShortDescribe(@Nonnull Properties properties) throws GitCommitIdExecutionException {
+  protected void loadShortDescribe(@NonNull Properties properties) throws GitCommitIdExecutionException {
     //removes git hash part from describe
     String commitDescribe = properties.getProperty(prefixDot + GitCommitPropertyConstant.COMMIT_DESCRIBE);
 
@@ -382,7 +382,7 @@ public abstract class GitDataProvider implements GitProvider {
    * @return results of getBranchName() or, if in Jenkins/Hudson, value of GIT_BRANCH
    * @throws GitCommitIdExecutionException the branch name could not be determined
    */
-  protected String determineBranchName(@Nonnull Map<String, String> env) throws GitCommitIdExecutionException {
+  protected String determineBranchName(@NonNull Map<String, String> env) throws GitCommitIdExecutionException {
     BuildServerDataProvider buildServerDataProvider = BuildServerDataProvider.getBuildServerProvider(env, log);
     if (useBranchNameFromBuildEnvironment && !(buildServerDataProvider instanceof UnknownBuildServerData)) {
       String branchName = buildServerDataProvider.getBuildBranch();
@@ -404,7 +404,7 @@ public abstract class GitDataProvider implements GitProvider {
     return smf;
   }
 
-  protected void maybePut(@Nonnull Properties properties, String key, SupplierEx<String> value)
+  protected void maybePut(@NonNull Properties properties, String key, SupplierEx<String> value)
           throws GitCommitIdExecutionException {
     String keyWithPrefix = prefixDot + key;
     if (properties.stringPropertyNames().contains(keyWithPrefix)) {

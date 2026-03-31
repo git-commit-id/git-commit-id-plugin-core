@@ -17,10 +17,10 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.GitCommitPropertyConstant;
 
-import javax.annotation.Nonnull;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
@@ -30,7 +30,7 @@ public class TeamCityBuildServerData extends BuildServerDataProvider {
 
   private final Properties teamcitySystemProperties = new Properties();
 
-  TeamCityBuildServerData(@Nonnull LogInterface log, @Nonnull Map<String, String> env) {
+  TeamCityBuildServerData(@NonNull LogInterface log, @NonNull Map<String, String> env) {
     super(log, env);
     if (isActiveServer(env)) {
       //https://confluence.jetbrains.com/display/TCD18/Predefined+Build+Parameters
@@ -47,12 +47,12 @@ public class TeamCityBuildServerData extends BuildServerDataProvider {
    * @return true, if the system environment variables contain the TeamCity specific environment variable; false otherwise
    * @see <a href=https://confluence.jetbrains.com/display/TCD18/Predefined+Build+Parameters#PredefinedBuildParameters-ServerBuildProperties>TeamCity</a>
    */
-  public static boolean isActiveServer(@Nonnull Map<String, String> env) {
+  public static boolean isActiveServer(@NonNull Map<String, String> env) {
     return env.containsKey("TEAMCITY_VERSION");
   }
 
   @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
+  void loadBuildNumber(@NonNull Properties properties) {
     String buildNumber = env.getOrDefault("BUILD_NUMBER", "");
     String buildNumberUnique = teamcitySystemProperties.getProperty("teamcity.build.id", "");
 

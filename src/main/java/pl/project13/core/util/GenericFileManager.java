@@ -18,14 +18,14 @@
 package pl.project13.core.util;
 
 import nu.studer.java.util.OrderedProperties;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import pl.project13.core.CannotReadFileException;
 import pl.project13.core.CommitIdPropertiesOutputFormat;
 import pl.project13.core.GitCommitIdExecutionException;
 import pl.project13.core.PropertiesFileGenerator;
 import pl.project13.core.log.LogInterface;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -33,15 +33,12 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Properties;
-import java.util.Set;
 
 public class GenericFileManager {
   public static Properties readPropertiesAsUtf8(
-      @Nonnull CommitIdPropertiesOutputFormat propertiesOutputFormat,
-      @Nonnull File gitPropsFile
+      @NonNull CommitIdPropertiesOutputFormat propertiesOutputFormat,
+      @NonNull File gitPropsFile
   ) throws GitCommitIdExecutionException {
     return readProperties(
       propertiesOutputFormat,
@@ -51,9 +48,9 @@ public class GenericFileManager {
   }
 
   public static Properties readProperties(
-      @Nonnull CommitIdPropertiesOutputFormat propertiesOutputFormat,
-      @Nonnull File gitPropsFile,
-      @Nonnull Charset sourceCharset
+      @NonNull CommitIdPropertiesOutputFormat propertiesOutputFormat,
+      @NonNull File gitPropsFile,
+      @NonNull Charset sourceCharset
   ) throws GitCommitIdExecutionException {
     return readProperties(
       null,
@@ -64,12 +61,12 @@ public class GenericFileManager {
     );
   }
 
-  @Nonnull
+  @NonNull
   public static Properties readProperties(
       @Nullable LogInterface log,
-      @Nonnull CommitIdPropertiesOutputFormat propertiesOutputFormat,
-      @Nonnull File gitPropsFile,
-      @Nonnull Charset sourceCharset,
+      @NonNull CommitIdPropertiesOutputFormat propertiesOutputFormat,
+      @NonNull File gitPropsFile,
+      @NonNull Charset sourceCharset,
       @Nullable String projectName
   ) throws GitCommitIdExecutionException {
     final Properties persistedProperties;
@@ -105,12 +102,12 @@ public class GenericFileManager {
 
   public static void dumpProperties(
       @Nullable LogInterface log,
-      @Nonnull CommitIdPropertiesOutputFormat propertiesOutputFormat,
-      @Nonnull File gitPropsFile,
-      @Nonnull Charset sourceCharset,
+      @NonNull CommitIdPropertiesOutputFormat propertiesOutputFormat,
+      @NonNull File gitPropsFile,
+      @NonNull Charset sourceCharset,
       boolean escapeUnicode,
       @Nullable String projectName,
-      @Nonnull Properties propertiesToDump
+      @NonNull Properties propertiesToDump
   ) throws GitCommitIdExecutionException {
     try {
       if (log != null) {

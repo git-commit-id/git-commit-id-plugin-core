@@ -18,9 +18,9 @@
 package pl.project13.core.util;
 
 import nu.studer.java.util.OrderedProperties;
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.CannotReadFileException;
 
-import javax.annotation.Nonnull;
 import javax.xml.XMLConstants;
 import javax.xml.stream.*;
 import java.io.*;
@@ -66,7 +66,7 @@ public class XmlManager {
 
   }
 
-  protected static Properties readXmlProperties(@Nonnull File xmlFile, Charset sourceCharset) throws CannotReadFileException {
+  protected static Properties readXmlProperties(@NonNull File xmlFile, Charset sourceCharset) throws CannotReadFileException {
     Properties retVal = new Properties();
 
     try (FileInputStream fis = new FileInputStream(xmlFile)) {

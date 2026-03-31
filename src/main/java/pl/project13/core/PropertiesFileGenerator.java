@@ -18,10 +18,10 @@
 package pl.project13.core;
 
 import nu.studer.java.util.OrderedProperties;
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.*;
 
-import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Comparator;
@@ -44,7 +44,7 @@ public class PropertiesFileGenerator {
   }
 
   public void maybeGeneratePropertiesFile(
-          @Nonnull Properties localProperties,
+          @NonNull Properties localProperties,
           File projectDir,
           File propsFile,
           Charset sourceCharset,

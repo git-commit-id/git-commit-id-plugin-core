@@ -18,12 +18,12 @@
 package pl.project13.core.util;
 
 import nu.studer.java.util.OrderedProperties;
+import org.jspecify.annotations.NonNull;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import pl.project13.core.CannotReadFileException;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class YmlManager {
     }
   }
 
-  protected static Properties readYmlProperties(@Nonnull File xmlFile, Charset sourceCharset) throws CannotReadFileException {
+  protected static Properties readYmlProperties(@NonNull File xmlFile, Charset sourceCharset) throws CannotReadFileException {
     Properties retVal = new Properties();
 
     try (FileInputStream fis = new FileInputStream(xmlFile)) {

@@ -33,13 +33,12 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevWalk;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.jgit.dummy.DatedRevTag;
 
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.Pair;
-
-import javax.annotation.Nonnull;
 
 public class JGitCommon {
 
@@ -102,14 +101,14 @@ public class JGitCommon {
             .collect(Collectors.toList());
   }
 
-  public String getClosestTagName(@Nonnull String evaluateOnCommit, @Nonnull Repository repo, GitDescribeConfig gitDescribe) {
+  public String getClosestTagName(@NonNull String evaluateOnCommit, @NonNull Repository repo, GitDescribeConfig gitDescribe) {
     // TODO: Why does some tests fail when it gets headCommit from JGitprovider?
     RevCommit headCommit = findEvalCommitObjectId(evaluateOnCommit, repo);
     Pair<RevCommit, String> pair = getClosestRevCommit(repo, headCommit, gitDescribe);
     return pair.second;
   }
 
-  public String getClosestTagCommitCount(@Nonnull String evaluateOnCommit, @Nonnull Repository repo, GitDescribeConfig gitDescribe) {
+  public String getClosestTagCommitCount(@NonNull String evaluateOnCommit, @NonNull Repository repo, GitDescribeConfig gitDescribe) {
     // TODO: Why does some tests fail when it gets headCommit from JGitprovider?
     RevCommit headCommit = findEvalCommitObjectId(evaluateOnCommit, repo);
     Pair<RevCommit, String> pair = getClosestRevCommit(repo, headCommit, gitDescribe);
@@ -118,7 +117,7 @@ public class JGitCommon {
     return String.valueOf(distance);
   }
 
-  private Pair<RevCommit, String> getClosestRevCommit(@Nonnull Repository repo, RevCommit headCommit, GitDescribeConfig gitDescribe) {
+  private Pair<RevCommit, String> getClosestRevCommit(@NonNull Repository repo, RevCommit headCommit, GitDescribeConfig gitDescribe) {
     boolean includeLightweightTags = false;
     String matchPattern = ".*";
     if (gitDescribe != null) {
@@ -145,7 +144,7 @@ public class JGitCommon {
             "\\E$";
   }
 
-  protected Map<ObjectId, List<String>> findTagObjectIds(@Nonnull Repository repo, boolean includeLightweightTags, String matchPattern) {
+  protected Map<ObjectId, List<String>> findTagObjectIds(@NonNull Repository repo, boolean includeLightweightTags, String matchPattern) {
     Map<ObjectId, List<DatedRevTag>> commitIdsToTags = getCommitIdsToTags(repo, includeLightweightTags, matchPattern);
     Map<ObjectId, List<String>> commitIdsToTagNames = transformRevTagsMapToDateSortedTagNames(commitIdsToTags);
     log.debug(String.format("Created map: [%s]", commitIdsToTagNames));
@@ -153,7 +152,7 @@ public class JGitCommon {
     return commitIdsToTagNames;
   }
 
-  protected RevCommit findEvalCommitObjectId(@Nonnull String evaluateOnCommit, @Nonnull Repository repo) throws RuntimeException {
+  protected RevCommit findEvalCommitObjectId(@NonNull String evaluateOnCommit, @NonNull Repository repo) throws RuntimeException {
     try {
       ObjectId evalCommitId = repo.resolve(evaluateOnCommit);
 
@@ -169,7 +168,7 @@ public class JGitCommon {
     }
   }
 
-  protected Map<ObjectId, List<DatedRevTag>> getCommitIdsToTags(@Nonnull Repository repo, boolean includeLightweightTags, String matchPattern) {
+  protected Map<ObjectId, List<DatedRevTag>> getCommitIdsToTags(@NonNull Repository repo, boolean includeLightweightTags, String matchPattern) {
     Map<ObjectId, List<DatedRevTag>> commitIdsToTags = new HashMap<>();
 
     try (RevWalk walk = new RevWalk(repo)) {
@@ -262,11 +261,11 @@ public class JGitCommon {
   }
 
   // Visible for testing
-  protected String trimFullTagName(@Nonnull String tagName) {
+  protected String trimFullTagName(@NonNull String tagName) {
     return tagName.replaceFirst("refs/tags/", "");
   }
 
-  public List<RevCommit> findCommitsUntilSomeTag(Repository repo, RevCommit head, @Nonnull Map<ObjectId, List<String>> tagObjectIdToName) {
+  public List<RevCommit> findCommitsUntilSomeTag(Repository repo, RevCommit head, @NonNull Map<ObjectId, List<String>> tagObjectIdToName) {
     try (RevWalk revWalk = new RevWalk(repo)) {
       revWalk.markStart(head);
 
@@ -294,7 +293,7 @@ public class JGitCommon {
    * @return distance (number of commits) between the given commits
    * @see <a href="https://github.com/mdonoughe/jgit-describe/blob/master/src/org/mdonoughe/JGitDescribeTask.java">mdonoughe/jgit-describe/blob/master/src/org/mdonoughe/JGitDescribeTask.java</a>
    */
-  protected int distanceBetween(@Nonnull Repository repo, @Nonnull RevCommit child, @Nonnull RevCommit parent) {
+  protected int distanceBetween(@NonNull Repository repo, @NonNull RevCommit child, @NonNull RevCommit parent) {
     try (RevWalk revWalk = new RevWalk(repo)) {
       revWalk.markStart(child);
 
@@ -341,7 +340,7 @@ public class JGitCommon {
     }
   }
 
-  private void seeAllParents(@Nonnull RevWalk revWalk, RevCommit child, @Nonnull Set<ObjectId> seen) throws IOException {
+  private void seeAllParents(@NonNull RevWalk revWalk, RevCommit child, @NonNull Set<ObjectId> seen) throws IOException {
     Queue<RevCommit> q = new ArrayDeque<>();
     q.add(child);
 

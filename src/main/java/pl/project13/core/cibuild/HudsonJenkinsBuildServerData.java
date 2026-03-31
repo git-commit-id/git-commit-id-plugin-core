@@ -17,16 +17,16 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.log.LogInterface;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Properties;
 
 public class HudsonJenkinsBuildServerData extends BuildServerDataProvider {
 
-  HudsonJenkinsBuildServerData(@Nonnull LogInterface log, @Nonnull Map<String, String> env) {
+  HudsonJenkinsBuildServerData(@NonNull LogInterface log, @NonNull Map<String, String> env) {
     super(log, env);
   }
 
@@ -35,13 +35,13 @@ public class HudsonJenkinsBuildServerData extends BuildServerDataProvider {
    * @return true, if the system environment variables contain the Hudson/Jenkins specific environment variable; false otherwise
    * @see <a href="https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables">JenkinsSetEnvironmentVariables</a>
    */
-  public static boolean isActiveServer(@Nonnull Map<String, String> env) {
+  public static boolean isActiveServer(@NonNull Map<String, String> env) {
     return env.containsKey("JENKINS_URL") || env.containsKey("JENKINS_HOME") ||
         env.containsKey("HUDSON_URL") || env.containsKey("HUDSON_HOME");
   }
 
   @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
+  void loadBuildNumber(@NonNull Properties properties) {
     String buildNumber = env.getOrDefault("BUILD_NUMBER", "");
 
     maybePut(properties, GitCommitPropertyConstant.BUILD_NUMBER, () -> buildNumber);

@@ -27,6 +27,8 @@ import org.eclipse.jgit.revwalk.RevWalkUtils;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.util.FS;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import pl.project13.core.jgit.DescribeResult;
 import pl.project13.core.jgit.JGitCommon;
 import pl.project13.core.jgit.DescribeCommand;
@@ -40,9 +42,6 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jgit.storage.file.WindowCacheConfig;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 public class JGitProvider extends GitDataProvider {
 
   private File dotGitDirectory;
@@ -52,12 +51,12 @@ public class JGitProvider extends GitDataProvider {
   private RevCommit evalCommit;
   private JGitCommon jGitCommon;
 
-  @Nonnull
-  public static JGitProvider on(@Nonnull File dotGitDirectory, @Nonnull LogInterface log) {
+  @NonNull
+  public static JGitProvider on(@NonNull File dotGitDirectory, @NonNull LogInterface log) {
     return new JGitProvider(dotGitDirectory, log);
   }
 
-  JGitProvider(@Nonnull File dotGitDirectory, @Nonnull LogInterface log) {
+  JGitProvider(@NonNull File dotGitDirectory, @NonNull LogInterface log) {
     super(log);
     this.dotGitDirectory = dotGitDirectory;
     FS.FileStoreAttributes.setBackground(true);
@@ -130,7 +129,7 @@ public class JGitProvider extends GitDataProvider {
    * Returns the commit hash or null if no commits found.
    */
   @Nullable
-  private String findLatestCommitForPath(@Nonnull String path) throws GitCommitIdExecutionException {
+  private String findLatestCommitForPath(@NonNull String path) throws GitCommitIdExecutionException {
     try {
       ObjectId start = git.resolve(evaluateOnCommit);
       if (start == null) {
@@ -412,7 +411,7 @@ public class JGitProvider extends GitDataProvider {
     }
   }
 
-  @Nonnull
+  @NonNull
   private Repository getGitRepository() throws GitCommitIdExecutionException {
     Repository repository;
 

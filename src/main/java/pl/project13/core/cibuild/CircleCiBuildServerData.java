@@ -17,16 +17,16 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.log.LogInterface;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Properties;
 
 public class CircleCiBuildServerData extends BuildServerDataProvider {
 
-  CircleCiBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
+  CircleCiBuildServerData(LogInterface log, @NonNull Map<String, String> env) {
     super(log,env);
   }
 
@@ -40,7 +40,7 @@ public class CircleCiBuildServerData extends BuildServerDataProvider {
   }
 
   @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
+  void loadBuildNumber(@NonNull Properties properties) {
     String buildNumber = env.getOrDefault("CIRCLE_BUILD_NUM", "");
     maybePut(properties, GitCommitPropertyConstant.BUILD_NUMBER, () -> buildNumber);
   }

@@ -17,17 +17,17 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.log.LogInterface;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import javax.annotation.Nonnull;
 
 public class BitbucketBuildServerData extends BuildServerDataProvider {
 
-  BitbucketBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
+  BitbucketBuildServerData(LogInterface log, @NonNull Map<String, String> env) {
     super(log, env);
   }
 
@@ -41,7 +41,7 @@ public class BitbucketBuildServerData extends BuildServerDataProvider {
   }
 
   @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
+  void loadBuildNumber(@NonNull Properties properties) {
     String buildNumber = Optional.ofNullable(env.get("BITBUCKET_BUILD_NUMBER")).orElse("");
 
     maybePut(properties, GitCommitPropertyConstant.BUILD_NUMBER, () -> buildNumber);

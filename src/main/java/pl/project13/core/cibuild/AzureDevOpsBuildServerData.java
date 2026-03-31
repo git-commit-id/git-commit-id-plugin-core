@@ -17,16 +17,16 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.GitCommitPropertyConstant;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Properties;
 
 public class AzureDevOpsBuildServerData extends BuildServerDataProvider {
 
-  AzureDevOpsBuildServerData(@Nonnull LogInterface log, @Nonnull Map<String, String> env) {
+  AzureDevOpsBuildServerData(@NonNull LogInterface log, @NonNull Map<String, String> env) {
     super(log, env);
   }
 
@@ -35,12 +35,12 @@ public class AzureDevOpsBuildServerData extends BuildServerDataProvider {
    * @return true, if the system environment variables contain the Azure specific environment variable; false otherwise
    * @see <a href="https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml#build-variables">Azure DevOps - Build variables</a>
    */
-  public static boolean isActiveServer(@Nonnull Map<String, String> env) {
+  public static boolean isActiveServer(@NonNull Map<String, String> env) {
     return env.containsKey("AZURE_HTTP_USER_AGENT") || env.containsKey("TF_BUILD");
   }
 
   @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
+  void loadBuildNumber(@NonNull Properties properties) {
     String buildNumber = env.getOrDefault("BUILD_BUILDNUMBER", "");
 
     maybePut(properties, GitCommitPropertyConstant.BUILD_NUMBER, () -> buildNumber);
