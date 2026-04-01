@@ -25,12 +25,12 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.Pair;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 
@@ -84,12 +84,12 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param log logger bridge to direct logs to
    * @return itself with the options set as specified by the arguments to allow fluent configuration
    */
-  @Nonnull
+  @NonNull
   public static DescribeCommand on(String evaluateOnCommit, Repository repo, LogInterface log) {
     return new DescribeCommand(evaluateOnCommit, repo, log, null);
   }
 
-  @Nonnull
+  @NonNull
   public static DescribeCommand on(String evaluateOnCommit, Repository repo, LogInterface log, String pathFilter) {
     return new DescribeCommand(evaluateOnCommit, repo, log, pathFilter);
   }
@@ -102,7 +102,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param log logger bridge to direct logs to
    * @return itself with the options set as specified by the arguments to allow fluent configuration
    */
-  private DescribeCommand(@Nonnull String evaluateOnCommit, @Nonnull Repository repo, @Nonnull LogInterface log, String pathFilter) {
+  private DescribeCommand(@NonNull String evaluateOnCommit, @NonNull Repository repo, @NonNull LogInterface log, String pathFilter) {
     super(repo);
     this.evaluateOnCommit = evaluateOnCommit;
     this.jGitCommon = new JGitCommon(log);
@@ -120,7 +120,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param always set to `true` when you want the describe command show uniquely abbreviated commit object as fallback.
    * @return itself with the `--always` option set as specified by the argument to allow fluent configuration
    */
-  @Nonnull
+  @NonNull
   public DescribeCommand always(boolean always) {
     this.alwaysFlag = always;
     log.debug(String.format("--always = %s", always));
@@ -141,7 +141,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param forceLongFormat set to `true` if you always want to output the long format
    * @return itself with the `--long` option set as specified by the argument to allow fluent configuration
    */
-  @Nonnull
+  @NonNull
   public DescribeCommand forceLongFormat(@Nullable Boolean forceLongFormat) {
     if (forceLongFormat != null && forceLongFormat) {
       this.forceLongFormat = true;
@@ -161,7 +161,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param n the length of the abbreviated object name
    * @return itself with the `--abbrev` option set as specified by the argument to allow fluent configuration
    */
-  @Nonnull
+  @NonNull
   public DescribeCommand abbrev(@Nullable Integer n) {
     if (n != null) {
       if (n >= 41) {
@@ -207,7 +207,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param includeLightweightTagsInSearch set to `true` if you want to matching a lightweight (non-annotated) tag
    * @return itself with the `--tags` option set as specified by the argument to allow fluent configuration
    */
-  @Nonnull
+  @NonNull
   public DescribeCommand tags(@Nullable Boolean includeLightweightTagsInSearch) {
     if (includeLightweightTagsInSearch != null && includeLightweightTagsInSearch) {
       tagsFlag = includeLightweightTagsInSearch;
@@ -231,7 +231,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param config A configuration that shall be applied to the current one
    * @return itself, after applying the settings
    */
-  @Nonnull
+  @NonNull
   public DescribeCommand apply(@Nullable GitDescribeConfig config) {
     if (config != null) {
       always(config.isAlways());
@@ -252,7 +252,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param dirtyMarker the marker name to be appended to the describe output when the workspace is dirty
    * @return itself with the `--dirty` option set as specified by the argument to allow fluent configuration
    */
-  @Nonnull
+  @NonNull
   public DescribeCommand dirty(@Nullable String dirtyMarker) {
     Optional<String> option = Optional.ofNullable(dirtyMarker);
     log.debug(String.format("--dirty = %s", option.orElse("")));
@@ -267,7 +267,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * @param pattern the glob style pattern to match against the tag names
    * @return itself with the `--match` option set as specified by the argument to allow fluent configuration
    */
-  @Nonnull
+  @NonNull
   public DescribeCommand match(@Nullable String pattern) {
     if (!"*".equals(pattern)) {
       matchOption = Optional.ofNullable(pattern);
@@ -377,7 +377,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
     }
   }
 
-  private static boolean foundZeroTags(@Nonnull Map<ObjectId, List<String>> tags) {
+  private static boolean foundZeroTags(@NonNull Map<ObjectId, List<String>> tags) {
     return tags.isEmpty();
   }
 
@@ -387,11 +387,11 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
   }
 
   // Visible for testing
-  static boolean hasTags(ObjectId headCommit, @Nonnull Map<ObjectId, List<String>> tagObjectIdToName) {
+  static boolean hasTags(ObjectId headCommit, @NonNull Map<ObjectId, List<String>> tagObjectIdToName) {
     return tagObjectIdToName.containsKey(headCommit);
   }
 
-  RevCommit findEvalCommitObjectId(@Nonnull String evaluateOnCommit, @Nonnull Repository repo) throws RuntimeException {
+  RevCommit findEvalCommitObjectId(@NonNull String evaluateOnCommit, @NonNull Repository repo) throws RuntimeException {
     return jGitCommon.findEvalCommitObjectId(evaluateOnCommit, repo);
   }
 
@@ -400,7 +400,7 @@ public class DescribeCommand extends GitCommand<DescribeResult> {
    * Returns the commit hash or null if no commits found.
    */
   @Nullable
-  private String findLatestCommitForPath(@Nonnull String path) throws GitAPIException, IOException {
+  private String findLatestCommitForPath(@NonNull String path) throws GitAPIException, IOException {
     ObjectId start = repo.resolve(evaluateOnCommit);
     if (start == null) {
       return null;

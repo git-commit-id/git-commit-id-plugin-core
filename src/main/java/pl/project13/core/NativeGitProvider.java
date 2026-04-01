@@ -19,11 +19,11 @@ package pl.project13.core;
 
 import static java.lang.String.format;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.log.LogInterface;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -44,12 +44,12 @@ public class NativeGitProvider extends GitDataProvider {
 
   final File canonical;
 
-  @Nonnull
-  public static NativeGitProvider on(@Nonnull File dotGitDirectory, long nativeGitTimeoutInMs, @Nonnull LogInterface log) {
+  @NonNull
+  public static NativeGitProvider on(@NonNull File dotGitDirectory, long nativeGitTimeoutInMs, @NonNull LogInterface log) {
     return new NativeGitProvider(dotGitDirectory, nativeGitTimeoutInMs, log);
   }
 
-  NativeGitProvider(@Nonnull File dotGitDirectory, long nativeGitTimeoutInMs, @Nonnull LogInterface log) {
+  NativeGitProvider(@NonNull File dotGitDirectory, long nativeGitTimeoutInMs, @NonNull LogInterface log) {
     super(log);
     this.dotGitDirectory = dotGitDirectory;
     this.nativeGitTimeoutInMs = nativeGitTimeoutInMs;
@@ -251,7 +251,7 @@ public class NativeGitProvider extends GitDataProvider {
    * Returns the commit hash or null if no commits found.
    */
   @Nullable
-  private String findLatestCommitForPath(@Nonnull String path) throws GitCommitIdExecutionException {
+  private String findLatestCommitForPath(@NonNull String path) throws GitCommitIdExecutionException {
     try {
       return runQuietGitCommand(
               canonical, nativeGitTimeoutInMs,

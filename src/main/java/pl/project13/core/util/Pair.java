@@ -17,16 +17,17 @@
 
 package pl.project13.core.util;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import java.util.Objects;
 
 public class Pair<A, B> {
 
-  @Nonnull
+  @NonNull
   public final A first;
 
-  @Nonnull
+  @NonNull
   public final B second;
 
   @SuppressWarnings("ConstantConditions")
@@ -38,7 +39,7 @@ public class Pair<A, B> {
     this.second = second;
   }
 
-  @Nonnull
+  @NonNull
   public static <A, B> Pair<A, B> of(A first, B second) {
     return new Pair<>(first, second);
   }
@@ -72,7 +73,7 @@ public class Pair<A, B> {
     return result;
   }
 
-  @Nonnull
+  @NonNull
   @Override
   public String toString() {
     return String.format("Pair(%s, %s)", first, second);

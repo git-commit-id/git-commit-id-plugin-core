@@ -17,15 +17,15 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.log.LogInterface;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 
 public class BambooBuildServerData extends BuildServerDataProvider {
 
-  BambooBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
+  BambooBuildServerData(LogInterface log, @NonNull Map<String, String> env) {
     super(log, env);
   }
 
@@ -41,7 +41,7 @@ public class BambooBuildServerData extends BuildServerDataProvider {
   }
 
   @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
+  void loadBuildNumber(@NonNull Properties properties) {
     String buildNumber = Optional.ofNullable(env.get("bamboo.buildNumber"))
             .or(() -> Optional.ofNullable(env.get("BAMBOO_BUILDNUMBER")))
             .orElseGet(() -> env.getOrDefault("bamboo_buildNumber", ""));

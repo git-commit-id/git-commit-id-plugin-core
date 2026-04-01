@@ -17,15 +17,15 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.log.LogInterface;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Properties;
 
 public class GitHubBuildServerData extends BuildServerDataProvider {
-  GitHubBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
+  GitHubBuildServerData(LogInterface log, @NonNull Map<String, String> env) {
     super(log, env);
   }
 
@@ -39,7 +39,7 @@ public class GitHubBuildServerData extends BuildServerDataProvider {
   }
 
   @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
+  void loadBuildNumber(@NonNull Properties properties) {
     String runId = env.getOrDefault("GITHUB_RUN_ID", "0");
     String runNumber = env.getOrDefault("GITHUB_RUN_NUMBER", "0");
     String runAttempt = env.getOrDefault("GITHUB_RUN_ATTEMPT", "0");

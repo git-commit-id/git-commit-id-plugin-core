@@ -17,13 +17,13 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.PropertiesFilterer;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.PropertyManager;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
@@ -43,22 +43,22 @@ public abstract class BuildServerDataProvider {
   protected static final String PULL_REQUEST_REF_PREFIX = "refs/pull/";
   protected static final String TAG_REF_PREFIX = "refs/tags/";
 
-  BuildServerDataProvider(@Nonnull LogInterface log, @Nonnull Map<String, String> env) {
+  BuildServerDataProvider(@NonNull LogInterface log, @NonNull Map<String, String> env) {
     this.log = log;
     this.env = env;
   }
 
-  public BuildServerDataProvider setDateFormat(@Nonnull String dateFormat) {
+  public BuildServerDataProvider setDateFormat(@NonNull String dateFormat) {
     this.dateFormat = dateFormat;
     return this;
   }
 
-  public BuildServerDataProvider setDateFormatTimeZone(@Nonnull String dateFormatTimeZone) {
+  public BuildServerDataProvider setDateFormatTimeZone(@NonNull String dateFormatTimeZone) {
     this.dateFormatTimeZone = dateFormatTimeZone;
     return this;
   }
 
-  public BuildServerDataProvider setPrefixDot(@Nonnull String prefixDot) {
+  public BuildServerDataProvider setPrefixDot(@NonNull String prefixDot) {
     this.prefixDot = prefixDot;
     return this;
   }
@@ -85,7 +85,7 @@ public abstract class BuildServerDataProvider {
    * @param log logging provider which will be used to log events
    * @return the corresponding {@link BuildServerDataProvider} for your environment or {@link UnknownBuildServerData}
    */
-  public static BuildServerDataProvider getBuildServerProvider(@Nonnull Map<String, String> env, @Nonnull LogInterface log) {
+  public static BuildServerDataProvider getBuildServerProvider(@NonNull Map<String, String> env, @NonNull LogInterface log) {
     if (BambooBuildServerData.isActiveServer(env)) {
       return new BambooBuildServerData(log, env);
     }
@@ -119,7 +119,7 @@ public abstract class BuildServerDataProvider {
     return new UnknownBuildServerData(log, env);
   }
 
-  public void loadBuildData(@Nonnull Properties properties, @Nullable Date reproducibleBuildOutputTimestamp) {
+  public void loadBuildData(@NonNull Properties properties, @Nullable Date reproducibleBuildOutputTimestamp) {
     loadBuildVersionAndTimeData(properties, reproducibleBuildOutputTimestamp);
     loadBuildHostData(properties);
     loadBuildNumber(properties);
@@ -132,14 +132,14 @@ public abstract class BuildServerDataProvider {
    *
    * @param properties a properties instance to put the entries on
    */
-  abstract void loadBuildNumber(@Nonnull Properties properties);
+  abstract void loadBuildNumber(@NonNull Properties properties);
 
   /**
    * @return the branch name provided by the server or an empty string
    */
   public abstract String getBuildBranch();
 
-  private void loadBuildVersionAndTimeData(@Nonnull Properties properties, @Nullable Date reproducibleBuildOutputTimestamp) {
+  private void loadBuildVersionAndTimeData(@NonNull Properties properties, @Nullable Date reproducibleBuildOutputTimestamp) {
     Supplier<String> buildTimeSupplier = () -> {
       Date buildDate = (reproducibleBuildOutputTimestamp == null) ? new Date() : reproducibleBuildOutputTimestamp;
       SimpleDateFormat smf = new SimpleDateFormat(dateFormat);
@@ -157,7 +157,7 @@ public abstract class BuildServerDataProvider {
     }
   }
 
-  private void loadBuildHostData(@Nonnull Properties properties) {
+  private void loadBuildHostData(@NonNull Properties properties) {
     Supplier<String> buildHostSupplier = () -> {
       String buildHost = null;
       try {
@@ -173,7 +173,7 @@ public abstract class BuildServerDataProvider {
     maybePut(properties, GitCommitPropertyConstant.BUILD_HOST, buildHostSupplier);
   }
 
-  protected void maybePut(@Nonnull Properties properties, @Nonnull String key, Supplier<String> supplier) {
+  protected void maybePut(@NonNull Properties properties, @NonNull String key, Supplier<String> supplier) {
     String keyWithPrefix = prefixDot + key;
     if (properties.stringPropertyNames().contains(keyWithPrefix)) {
       String propertyValue = properties.getProperty(keyWithPrefix);

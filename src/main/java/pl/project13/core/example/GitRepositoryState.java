@@ -17,7 +17,8 @@
 
 package pl.project13.core.example;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
+
 import java.util.Set;
 
 /**
@@ -178,7 +179,7 @@ public class GitRepositoryState {
     return sb.append("}").toString();
   }
 
-  private void appendProperty(@Nonnull StringBuilder sb, String label, String value) {
+  private void appendProperty(@NonNull StringBuilder sb, String label, String value) {
     sb.append(String.format("\"%s\": \"%s\",", label, value));
   }
 

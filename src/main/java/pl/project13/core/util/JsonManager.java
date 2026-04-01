@@ -23,9 +23,9 @@ import jakarta.json.JsonString;
 import jakarta.json.stream.JsonGenerator;
 import jakarta.json.stream.JsonGeneratorFactory;
 import nu.studer.java.util.OrderedProperties;
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.CannotReadFileException;
 
-import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Collections;
@@ -50,7 +50,7 @@ public class JsonManager {
 
   }
 
-  protected static Properties readJsonProperties(@Nonnull File jsonFile, Charset sourceCharset) throws CannotReadFileException {
+  protected static Properties readJsonProperties(@NonNull File jsonFile, Charset sourceCharset) throws CannotReadFileException {
     Properties retVal = new Properties();
     try (FileInputStream fis = new FileInputStream(jsonFile)) {
       try (InputStreamReader reader = new InputStreamReader(fis, sourceCharset)) {

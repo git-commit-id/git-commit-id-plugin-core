@@ -17,14 +17,14 @@
 
 package pl.project13.core;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import pl.project13.core.cibuild.BuildServerDataProvider;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.BuildFileChangeListener;
 import pl.project13.core.util.GitDirLocator;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
@@ -55,14 +55,14 @@ public class GitCommitIdPlugin {
     /**
      * @return Logging Interface
      */
-    @Nonnull
+    @NonNull
     LogInterface getLogInterface();
 
     /**
      * @return The date format to be used for any dates exported by this plugin.
      *         It should be a valid {@link SimpleDateFormat} string.
      */
-    @Nonnull
+    @NonNull
     String getDateFormat();
 
     /**
@@ -74,7 +74,7 @@ public class GitCommitIdPlugin {
      *
      * @return The timezone used in the date format of dates exported by this plugin.
      */
-    @Nonnull
+    @NonNull
     String getDateFormatTimeZone();
 
     /**
@@ -82,7 +82,7 @@ public class GitCommitIdPlugin {
      *
      * @return The prefix to expose the properties on.
      */
-    @Nonnull
+    @NonNull
     String getPrefixDot();
 
     /**
@@ -297,7 +297,7 @@ public class GitCommitIdPlugin {
 
   protected static final Pattern allowedCharactersForEvaluateOnCommit = Pattern.compile("[a-zA-Z0-9\\_\\-\\^\\/\\.]+");
 
-  public static void runPlugin(@Nonnull Callback cb, @Nullable Properties contextProperties) throws GitCommitIdExecutionException {
+  public static void runPlugin(@NonNull Callback cb, @Nullable Properties contextProperties) throws GitCommitIdExecutionException {
     PropertiesFilterer propertiesFilterer = new PropertiesFilterer(cb.getLogInterface());
 
     // The properties we store our data in and then expose them.
@@ -334,7 +334,7 @@ public class GitCommitIdPlugin {
     cb.performPublishToAllSystemEnvironments(properties);
   }
 
-  protected static void loadBuildData(@Nonnull Callback cb, @Nonnull Properties properties) throws GitCommitIdExecutionException {
+  protected static void loadBuildData(@NonNull Callback cb, @NonNull Properties properties) throws GitCommitIdExecutionException {
     Map<String, Supplier<String>> additionalProperties = Collections.singletonMap(
             GitCommitPropertyConstant.BUILD_VERSION, cb.supplyProjectVersion());
     BuildServerDataProvider buildServerDataProvider = BuildServerDataProvider.getBuildServerProvider(
@@ -349,7 +349,7 @@ public class GitCommitIdPlugin {
     buildServerDataProvider.loadBuildData(properties, cb.getReproducibleBuildOutputTimestamp());
   }
 
-  protected static void loadGitData(@Nonnull Callback cb, @Nonnull Properties properties) throws GitCommitIdExecutionException {
+  protected static void loadGitData(@NonNull Callback cb, @NonNull Properties properties) throws GitCommitIdExecutionException {
     String evaluateOnCommit = cb.getEvaluateOnCommit();
     if ((evaluateOnCommit == null) || !allowedCharactersForEvaluateOnCommit.matcher(evaluateOnCommit).matches()) {
       throw new GitCommitIdExecutionException("suspicious argument for evaluateOnCommit, aborting execution!");
@@ -375,9 +375,9 @@ public class GitCommitIdPlugin {
   }
 
   private static void loadGitDataWithNativeGit(
-      @Nonnull Callback cb,
-      @Nonnull File dotGitDirectory,
-      @Nonnull Properties properties) throws GitCommitIdExecutionException {
+      @NonNull Callback cb,
+      @NonNull File dotGitDirectory,
+      @NonNull Properties properties) throws GitCommitIdExecutionException {
     GitDataProvider nativeGitProvider = NativeGitProvider
             .on(dotGitDirectory, cb.getNativeGitTimeoutInMs(), cb.getLogInterface());
 
@@ -387,9 +387,9 @@ public class GitCommitIdPlugin {
   }
 
   private static void loadGitDataWithJGit(
-      @Nonnull Callback cb,
-      @Nonnull File dotGitDirectory,
-      @Nonnull Properties properties) throws GitCommitIdExecutionException {
+      @NonNull Callback cb,
+      @NonNull File dotGitDirectory,
+      @NonNull Properties properties) throws GitCommitIdExecutionException {
     GitDataProvider jGitProvider = JGitProvider
             .on(dotGitDirectory, cb.getLogInterface());
 
@@ -399,9 +399,9 @@ public class GitCommitIdPlugin {
   }
 
   private static void configureCommonProvider(
-      @Nonnull GitDataProvider provider,
-      @Nonnull Callback cb,
-      @Nonnull File dotGitDirectory) {
+      @NonNull GitDataProvider provider,
+      @NonNull Callback cb,
+      @NonNull File dotGitDirectory) {
     provider
             .setPrefixDot(cb.getPrefixDot())
             .setAbbrevLength(cb.getAbbrevLength())
@@ -425,7 +425,7 @@ public class GitCommitIdPlugin {
    * Returns null if the project directory is not within the repository or if resolution fails.
    */
   @Nullable
-  private static String resolveRelativeModulePath(@Nonnull Callback cb, @Nonnull File dotGitDirectory) {
+  private static String resolveRelativeModulePath(@NonNull Callback cb, @NonNull File dotGitDirectory) {
     try {
       // Determine repository work tree
       // If dotGitDirectory is named ".git", the work tree is its parent

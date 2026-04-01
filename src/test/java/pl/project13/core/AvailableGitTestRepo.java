@@ -18,7 +18,8 @@
 package pl.project13.core;
 
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
+
 import java.io.File;
 
 public enum AvailableGitTestRepo {
@@ -148,7 +149,7 @@ public enum AvailableGitTestRepo {
     this.dir = dir;
   }
 
-  @Nonnull
+  @NonNull
   public File getDir() {
     return new File(dir);
   }

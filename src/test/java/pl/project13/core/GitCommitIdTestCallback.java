@@ -17,13 +17,13 @@
 
 package pl.project13.core;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import pl.project13.core.git.GitDescribeConfig;
 import pl.project13.core.log.DummyLogInterface;
 import pl.project13.core.log.LogInterface;
 import pl.project13.core.util.BuildFileChangeListener;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -219,25 +219,25 @@ public class GitCommitIdTestCallback {
         return () -> projectVersion;
       }
 
-      @Nonnull
+      @NonNull
       @Override
       public LogInterface getLogInterface() {
         return logInterface;
       }
 
-      @Nonnull
+      @NonNull
       @Override
       public String getDateFormat() {
         return dateFormat;
       }
 
-      @Nonnull
+      @NonNull
       @Override
       public String getDateFormatTimeZone() {
         return dateFormatTimeZone;
       }
 
-      @Nonnull
+      @NonNull
       @Override
       public String getPrefixDot() {
         return prefixDot;

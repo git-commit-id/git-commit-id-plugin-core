@@ -17,19 +17,19 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.log.LogInterface;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Properties;
 
 public class UnknownBuildServerData extends BuildServerDataProvider {
-  public UnknownBuildServerData(@Nonnull LogInterface log, @Nonnull Map<String, String> env) {
+  public UnknownBuildServerData(@NonNull LogInterface log, @NonNull Map<String, String> env) {
     super(log, env);
   }
 
   @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
+  void loadBuildNumber(@NonNull Properties properties) {
   }
 
   @Override

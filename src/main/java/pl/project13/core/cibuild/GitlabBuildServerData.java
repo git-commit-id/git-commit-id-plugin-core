@@ -17,16 +17,16 @@
 
 package pl.project13.core.cibuild;
 
+import org.jspecify.annotations.NonNull;
 import pl.project13.core.GitCommitPropertyConstant;
 import pl.project13.core.log.LogInterface;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Properties;
 
 public class GitlabBuildServerData extends BuildServerDataProvider {
 
-  GitlabBuildServerData(LogInterface log, @Nonnull Map<String, String> env) {
+  GitlabBuildServerData(LogInterface log, @NonNull Map<String, String> env) {
     super(log,env);
   }
 
@@ -41,7 +41,7 @@ public class GitlabBuildServerData extends BuildServerDataProvider {
   }
 
   @Override
-  void loadBuildNumber(@Nonnull Properties properties) {
+  void loadBuildNumber(@NonNull Properties properties) {
     // GITLAB CI
     // CI_PIPELINE_ID will be present if in a Gitlab CI environment (Gitlab >8.10 & Gitlab CI >0.5)  and contains a server wide unique ID for a pipeline run
     String uniqueBuildNumber = env.getOrDefault("CI_PIPELINE_ID", "");
