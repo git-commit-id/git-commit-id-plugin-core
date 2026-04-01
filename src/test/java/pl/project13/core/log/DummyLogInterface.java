@@ -17,29 +17,34 @@
 
 package pl.project13.core.log;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DummyLogInterface implements LogInterface {
+  private static final Logger LOG = LoggerFactory.getLogger(DummyLogInterface.class);
+
   @Override
   public void debug(String msg) {
-    // ignore
+    LOG.debug(msg);
   }
 
   @Override
   public void info(String msg) {
-    // ignore
+    LOG.info(msg);
   }
 
   @Override
   public void warn(String msg) {
-    // ignore
+    LOG.warn(msg);
   }
 
   @Override
   public void error(String msg) {
-    // ignore
+    LOG.error(msg);
   }
 
   @Override
   public void error(String msg, Throwable t) {
-    // ignore
+    LOG.error(msg, t);
   }
 }
