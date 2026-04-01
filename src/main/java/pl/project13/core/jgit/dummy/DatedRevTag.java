@@ -19,7 +19,9 @@ package pl.project13.core.jgit.dummy;
 
 import org.eclipse.jgit.lib.AnyObjectId;
 import org.eclipse.jgit.revwalk.RevTag;
+
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 public class DatedRevTag {
 
@@ -28,17 +30,24 @@ public class DatedRevTag {
   public final Instant date;
 
   public DatedRevTag(RevTag tag) {
-    this(tag.getId(), tag.getTagName(), (tag.getTaggerIdent() != null) ? tag.getTaggerIdent().getWhen().toInstant() : Instant.now());
+    this(tag.getId(), tag.getTagName(), tag.getTaggerIdent() != null
+                    ? tag.getTaggerIdent().getWhen().toInstant()
+                    : nowMinusYears(1900));
   }
 
   public DatedRevTag(AnyObjectId id, String tagName) {
-    this(id, tagName, Instant.now());
+    this(id, tagName, nowMinusYears(2000));
   }
 
   public DatedRevTag(AnyObjectId id, String tagName, Instant date) {
     this.id = id;
     this.tagName = tagName;
     this.date = date;
+  }
+
+  static Instant nowMinusYears(final int years) {
+    // Instant does not support operations using > DAYS
+    return Instant.now().minus(years * 365L, ChronoUnit.DAYS);
   }
 
   @Override
